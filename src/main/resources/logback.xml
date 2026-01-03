@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+  <!-- Console appender -->
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- File appender -->
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>logs/switchapi.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <!-- Ротация логов ежедневно -->
+      <fileNamePattern>logs/switchapi.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <!-- Хранить логи за последние 30 дней -->
+      <maxHistory>30</maxHistory>
+    </rollingPolicy>
+    <encoder>
+      <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- Root logger -->
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="FILE"/>
+  </root>
+
+  <!-- Логи вашего приложения на уровне DEBUG -->
+  <logger name="com.example.switcher" level="DEBUG"/>
+
+  <!-- Логи Vert.x на уровне INFO (чтобы не было слишком много) -->
+  <logger name="io.vertx" level="INFO"/>
+  <logger name="io.netty" level="INFO"/>
+
+</configuration>
