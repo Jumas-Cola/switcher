@@ -11,7 +11,7 @@ buildscript {
 }
 
 plugins {
-  kotlin ("jvm") version "2.2.20"
+  kotlin("jvm") version "2.2.20"
   application
   id("com.gradleup.shadow") version "9.2.2"
   id("org.flywaydb.flyway") version "11.20.0"
@@ -42,8 +42,6 @@ dependencies {
   implementation("io.vertx:vertx-sql-client-templates")
   implementation("io.vertx:vertx-lang-kotlin-coroutines")
   implementation("io.vertx:vertx-lang-kotlin")
-  testImplementation("io.vertx:vertx-junit5")
-  testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
   testRuntimeOnly("org.junit.platform:junit-platform-launcher")
   implementation("io.vertx:vertx-config:4.5.0")
   implementation("io.vertx:vertx-config-hocon:4.5.0")
@@ -52,10 +50,12 @@ dependencies {
   implementation("io.vertx:vertx-auth-jwt:5.0.6")
   implementation("io.vertx:vertx-web-openapi-router")
   implementation("de.mkammerer:argon2-jvm:2.12")
-
-  // Flyway + JDBC драйвер для миграций
   implementation("org.flywaydb:flyway-database-postgresql:11.20.0")
   runtimeOnly("org.postgresql:postgresql:42.7.4")
+
+  testImplementation("io.vertx:vertx-junit5")
+  testImplementation("io.vertx:vertx-web-client")
+  testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
 }
 
 kotlin {

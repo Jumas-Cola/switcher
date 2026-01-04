@@ -73,7 +73,7 @@ class AuthHandler(private val eventBus: EventBus, private val jwtService: JwtSer
         }
       }
       .onFailure { err ->
-        if (err.message?.contains("404") == true) {
+        if (err is io.vertx.core.eventbus.ReplyException && err.failureCode() == 404) {
           ctx.response().setStatusCode(401).end()
         } else {
           logger.error("Failed to login", err)
