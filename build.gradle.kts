@@ -50,6 +50,7 @@ dependencies {
   implementation("ch.qos.logback:logback-classic:1.4.14")
   implementation("org.slf4j:slf4j-api:2.0.9")
   implementation("io.vertx:vertx-auth-jwt:5.0.6")
+  implementation("io.vertx:vertx-web-openapi-router")
   implementation("de.mkammerer:argon2-jvm:2.12")
 
   // Flyway + JDBC драйвер для миграций

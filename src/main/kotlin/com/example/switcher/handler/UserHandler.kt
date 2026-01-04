@@ -5,6 +5,7 @@ import io.vertx.core.eventbus.EventBus
 import io.vertx.core.internal.logging.LoggerFactory
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.RoutingContext
+import io.vertx.openapi.validation.ValidatedRequest
 
 class UserHandler(private val eventBus: EventBus) {
 
@@ -44,20 +45,19 @@ class UserHandler(private val eventBus: EventBus) {
   }
 
   fun create(ctx: RoutingContext) {
-    ctx.request().bodyHandler { body ->
-      val json = body.toJsonObject()
+    val validatedRequest = ctx.get<ValidatedRequest>("openApiValidatedRequest")
+    val json = validatedRequest.body.jsonObject
 
-      eventBus.request<JsonObject>(DatabaseVerticle.ADDRESS_USER_CREATE, json)
-        .onSuccess { reply ->
-          ctx.response()
-            .setStatusCode(201)
-            .putHeader("content-type", "application/json")
-            .end(reply.body().encode())
-        }
-        .onFailure { err ->
-          logger.error("Failed to create user", err)
-          ctx.response().setStatusCode(500).end()
-        }
-    }
+    eventBus.request<JsonObject>(DatabaseVerticle.ADDRESS_USER_CREATE, json)
+      .onSuccess { reply ->
+        ctx.response()
+          .setStatusCode(201)
+          .putHeader("content-type", "application/json")
+          .end(reply.body().encode())
+      }
+      .onFailure { err ->
+        logger.error("Failed to create user", err)
+        ctx.response().setStatusCode(500).end()
+      }
   }
 }

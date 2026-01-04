@@ -35,6 +35,15 @@ class UserRepository(private val pool: Pool) {
       }
   }
 
+  fun getByEmail(email: String): Future<User?> {
+    return pool
+      .preparedQuery("SELECT id, email, password, created_at FROM users WHERE email = $1")
+      .execute(Tuple.of(email))
+      .map { rows ->
+        if (rows.size() == 0) null else User.fromRow(rows.first())
+      }
+  }
+
   fun delete(id: UUID): Future<Boolean> {
     return pool
       .preparedQuery("DELETE FROM users WHERE id = $1")

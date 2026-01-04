@@ -1,47 +1,71 @@
 package com.example.switcher
 
+import com.example.switcher.config.JwtConfig
 import com.example.switcher.handler.AuthHandler
 import com.example.switcher.handler.HealthHandler
 import com.example.switcher.handler.SwitchHandler
 import com.example.switcher.handler.UserHandler
+import com.example.switcher.service.JwtService
+import io.vertx.core.Future
 import io.vertx.core.Vertx
 import io.vertx.ext.web.Router
+import io.vertx.ext.web.handler.StaticHandler
+import io.vertx.ext.web.openapi.router.RouterBuilder
+import io.vertx.openapi.contract.OpenAPIContract
 
-class RouterFactory(private val vertx: Vertx) {
+class RouterFactory(private val vertx: Vertx, jwtConfig: JwtConfig) {
 
   private val eventBus = vertx.eventBus()
+  private val jwtService = JwtService(vertx, jwtConfig)
   private val healthHandler = HealthHandler()
-  private val authHandler = AuthHandler(eventBus)
+  private val authHandler = AuthHandler(eventBus, jwtService)
   private val userHandler = UserHandler(eventBus)
   private val switchHandler = SwitchHandler(eventBus)
 
-  fun create(): Router {
-    val router = Router.router(vertx)
+  fun create(): Future<Router> {
+    return OpenAPIContract.from(vertx, "openapi.yaml")
+      .compose { contract ->
+        val routerBuilder = RouterBuilder.create(vertx, contract)
 
-    router.get("/api/health").handler(healthHandler::healthCheck)
-    setupAuthRoutes(router)
-    setupUserRoutes(router)
-    setupSwitchRoutes(router)
+        // Health
+        routerBuilder.getRoute("healthCheck")?.addHandler(healthHandler::healthCheck)
 
-    return router
-  }
+        // Auth
+        routerBuilder.getRoute("register")?.addHandler(authHandler::register)
+        routerBuilder.getRoute("login")?.addHandler(authHandler::login)
 
-  private fun setupAuthRoutes(router: Router) {
-    router.post("/api/register").handler(authHandler::register)
-  }
+        // Users
+        routerBuilder.getRoute("getAllUsers")?.addHandler(userHandler::getAll)
+        routerBuilder.getRoute("getUserById")?.addHandler(userHandler::getById)
+        routerBuilder.getRoute("createUser")?.addHandler(userHandler::create)
 
-  private fun setupUserRoutes(router: Router) {
-    router.get("/api/users").handler(userHandler::getAll)
-    router.get("/api/users/:id").handler(userHandler::getById)
-    router.post("/api/users").handler(userHandler::create)
-  }
+        // Switches
+        routerBuilder.getRoute("getAllSwitches")?.addHandler(switchHandler::getAll)
+        routerBuilder.getRoute("getSwitchById")?.addHandler(switchHandler::getById)
+        routerBuilder.getRoute("getSwitchesByUser")?.addHandler(switchHandler::getByUser)
+        routerBuilder.getRoute("createSwitch")?.addHandler(switchHandler::create)
+        routerBuilder.getRoute("updateSwitch")?.addHandler(switchHandler::update)
+        routerBuilder.getRoute("deleteSwitch")?.addHandler(switchHandler::delete)
 
-  private fun setupSwitchRoutes(router: Router) {
-    router.get("/api/switches").handler(switchHandler::getAll)
-    router.get("/api/switches/:id").handler(switchHandler::getById)
-    router.get("/api/users/:userId/switches").handler(switchHandler::getByUser)
-    router.post("/api/switches").handler(switchHandler::create)
-    router.put("/api/switches/:id").handler(switchHandler::update)
-    router.delete("/api/switches/:id").handler(switchHandler::delete)
+        val router = routerBuilder.createRouter()
+
+        // Swagger UI - serve from classpath
+        router.route("/swagger-ui/*").handler(
+          StaticHandler.create("webroot/swagger-ui").setCachingEnabled(false)
+        )
+        // Serve OpenAPI spec
+        router.get("/openapi.yaml").handler { ctx ->
+          ctx.vertx().fileSystem().readFile("openapi.yaml")
+            .onSuccess { buffer ->
+              ctx.response()
+                .putHeader("content-type", "text/yaml")
+                .putHeader("access-control-allow-origin", "*")
+                .end(buffer)
+            }
+            .onFailure { ctx.fail(404) }
+        }
+
+        Future.succeededFuture(router)
+      }
   }
 }

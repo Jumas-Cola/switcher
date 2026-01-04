@@ -14,18 +14,19 @@ class HttpVerticle(private val config: AppConfig) : VerticleBase() {
   private lateinit var httpServer: HttpServer
 
   override fun start(): Future<*> {
-    val router = RouterFactory(vertx).create()
-
-    return vertx
-      .createHttpServer()
-      .requestHandler(router)
-      .listen(config.http.port, config.http.host)
-      .onSuccess { server ->
-        httpServer = server
-        logger.info("HTTP server started on ${config.http.host}:${config.http.port}")
-      }
-      .onFailure { error ->
-        logger.error("Failed to start HTTP server", error)
+    return RouterFactory(vertx, config.jwt).create()
+      .compose { router ->
+        vertx
+          .createHttpServer()
+          .requestHandler(router)
+          .listen(config.http.port, config.http.host)
+          .onSuccess { server ->
+            httpServer = server
+            logger.info("HTTP server started on ${config.http.host}:${config.http.port}")
+          }
+          .onFailure { error ->
+            logger.error("Failed to start HTTP server", error)
+          }
       }
   }
 

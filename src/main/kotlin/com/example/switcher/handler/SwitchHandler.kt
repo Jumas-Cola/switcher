@@ -5,6 +5,7 @@ import io.vertx.core.eventbus.EventBus
 import io.vertx.core.internal.logging.LoggerFactory
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.RoutingContext
+import io.vertx.openapi.validation.ValidatedRequest
 
 class SwitchHandler(private val eventBus: EventBus) {
 
@@ -60,44 +61,41 @@ class SwitchHandler(private val eventBus: EventBus) {
   }
 
   fun create(ctx: RoutingContext) {
-    ctx.request().bodyHandler { body ->
-      val json = body.toJsonObject()
+    val validatedRequest = ctx.get<ValidatedRequest>("openApiValidatedRequest")
+    val json = validatedRequest.body.jsonObject
 
-      eventBus.request<JsonObject>(DatabaseVerticle.ADDRESS_SWITCH_CREATE, json)
-        .onSuccess { reply ->
-          ctx.response()
-            .setStatusCode(201)
-            .putHeader("content-type", "application/json")
-            .end(reply.body().encode())
-        }
-        .onFailure { err ->
-          logger.error("Failed to create switch", err)
-          ctx.response().setStatusCode(500).end()
-        }
-    }
+    eventBus.request<JsonObject>(DatabaseVerticle.ADDRESS_SWITCH_CREATE, json)
+      .onSuccess { reply ->
+        ctx.response()
+          .setStatusCode(201)
+          .putHeader("content-type", "application/json")
+          .end(reply.body().encode())
+      }
+      .onFailure { err ->
+        logger.error("Failed to create switch", err)
+        ctx.response().setStatusCode(500).end()
+      }
   }
 
   fun update(ctx: RoutingContext) {
     val id = ctx.pathParam("id")
+    val validatedRequest = ctx.get<ValidatedRequest>("openApiValidatedRequest")
+    val json = validatedRequest.body.jsonObject.put("id", id)
 
-    ctx.request().bodyHandler { body ->
-      val json = body.toJsonObject().put("id", id)
-
-      eventBus.request<JsonObject>(DatabaseVerticle.ADDRESS_SWITCH_UPDATE, json)
-        .onSuccess { reply ->
-          ctx.response()
-            .putHeader("content-type", "application/json")
-            .end(reply.body().encode())
+    eventBus.request<JsonObject>(DatabaseVerticle.ADDRESS_SWITCH_UPDATE, json)
+      .onSuccess { reply ->
+        ctx.response()
+          .putHeader("content-type", "application/json")
+          .end(reply.body().encode())
+      }
+      .onFailure { err ->
+        if (err.message?.contains("404") == true) {
+          ctx.response().setStatusCode(404).end()
+        } else {
+          logger.error("Failed to update switch", err)
+          ctx.response().setStatusCode(500).end()
         }
-        .onFailure { err ->
-          if (err.message?.contains("404") == true) {
-            ctx.response().setStatusCode(404).end()
-          } else {
-            logger.error("Failed to update switch", err)
-            ctx.response().setStatusCode(500).end()
-          }
-        }
-    }
+      }
   }
 
   fun delete(ctx: RoutingContext) {

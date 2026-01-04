@@ -27,6 +27,7 @@ class DatabaseVerticle(private val config: AppConfig) : VerticleBase() {
     const val ADDRESS_USER_CREATE = "db.user.create"
     const val ADDRESS_USER_GET_ALL = "db.user.getAll"
     const val ADDRESS_USER_GET_BY_ID = "db.user.getById"
+    const val ADDRESS_USER_GET_BY_EMAIL = "db.user.getByEmail"
 
     const val ADDRESS_SWITCH_CREATE = "db.switch.create"
     const val ADDRESS_SWITCH_GET_ALL = "db.switch.getAll"
@@ -71,6 +72,7 @@ class DatabaseVerticle(private val config: AppConfig) : VerticleBase() {
     eventBus.consumer(ADDRESS_USER_CREATE, ::handleUserCreate)
     eventBus.consumer(ADDRESS_USER_GET_ALL, ::handleUserGetAll)
     eventBus.consumer(ADDRESS_USER_GET_BY_ID, ::handleUserGetById)
+    eventBus.consumer(ADDRESS_USER_GET_BY_EMAIL, ::handleUserGetByEmail)
 
     eventBus.consumer(ADDRESS_SWITCH_CREATE, ::handleSwitchCreate)
     eventBus.consumer(ADDRESS_SWITCH_GET_ALL, ::handleSwitchGetAll)
@@ -110,6 +112,23 @@ class DatabaseVerticle(private val config: AppConfig) : VerticleBase() {
     val id = UUID.fromString(message.body().getString("id"))
 
     userRepository.getById(id)
+      .onSuccess { user ->
+        if (user == null) {
+          message.fail(404, "User not found")
+        } else {
+          message.reply(user.toJson())
+        }
+      }
+      .onFailure { err ->
+        logger.error("Failed to get user", err)
+        message.fail(500, err.message)
+      }
+  }
+
+  private fun handleUserGetByEmail(message: Message<JsonObject>) {
+    val email = message.body().getString("email")
+
+    userRepository.getByEmail(email)
       .onSuccess { user ->
         if (user == null) {
           message.fail(404, "User not found")
