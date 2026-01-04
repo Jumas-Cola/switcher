@@ -7,6 +7,8 @@ import io.vertx.ext.auth.JWTOptions
 import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.auth.jwt.JWTAuthOptions
 import io.vertx.ext.auth.PubSecKeyOptions
+import io.vertx.ext.auth.User
+import io.vertx.ext.auth.authentication.TokenCredentials
 
 class JwtService(vertx: Vertx, private val config: JwtConfig) {
 
@@ -33,6 +35,18 @@ class JwtService(vertx: Vertx, private val config: JwtConfig) {
       .setAlgorithm("HS256")
 
     return jwtAuth.generateToken(claims, options)
+  }
+
+  fun getUserFromToken(token: String): User? {
+    var user: User? = null
+    jwtAuth.authenticate(TokenCredentials(token))
+      .onComplete { result ->
+        if (result.succeeded()) {
+          user = result.result()
+        }
+      }
+
+    return user
   }
 
   fun getAuthProvider(): JWTAuth = jwtAuth

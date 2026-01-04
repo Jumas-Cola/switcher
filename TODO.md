@@ -97,13 +97,13 @@ src/main/resources/
 - [x] Создать dto/RegisterRequest — валидация email
 - [x] Создать AuthHandler — обработка регистрации через EventBus
 - [x] Добавить маршрут POST /api/register в RouterFactory
-- [ ] Создать dto/LoginRequest — валидация входных данных
-- [ ] Реализовать PasswordHasher — хеширование Argon2 и проверка паролей
-- [ ] Интегрировать PasswordHasher в AuthHandler (хеширование при регистрации)
-- [ ] Расширить UserRepository — findByEmail
-- [ ] Реализовать JwtService — generateToken, validateToken
+- [x] Создать dto/LoginRequest — валидация входных данных
+- [x] Реализовать PasswordHasher — хеширование Argon2 и проверка паролей
+- [x] Интегрировать PasswordHasher в AuthHandler (хеширование при регистрации)
+- [x] Расширить UserRepository — findByEmail
+- [ ] Реализовать JwtService — generateToken, getUserFromToken
 - [ ] Создать JwtAuthMiddleware — проверка токена в заголовке Authorization
-- [ ] Добавить маршрут POST /api/login в RouterFactory
+- [x] Добавить маршрут POST /api/login в RouterFactory
 - [ ] Защитить приватные маршруты через JwtAuthMiddleware
 
 ## Этап 3: Расширение переключателей
