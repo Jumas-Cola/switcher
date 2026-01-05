@@ -4,8 +4,8 @@ CREATE TABLE switches
   user_id     UUID         NOT NULL REFERENCES users (id) ON DELETE CASCADE,
   name        VARCHAR(100) NOT NULL,
   type        VARCHAR(10)  NOT NULL CHECK (type IN ('SWITCH', 'BUTTON')),
-  state       BOOLEAN      NOT NULL DEFAULT false,
-  toggled_at  TIMESTAMP,         -- дата последнего включения
-  public_code VARCHAR(8) UNIQUE, -- null = не опубликован
+  state       varchar(10)  NOT NULL CHECK (state IN ('PUBLIC', 'PRIVATE')),
+  toggled_at  TIMESTAMP, -- дата последнего включения
+  public_code UUID         NOT NULL,
   created_at  TIMESTAMP    NOT NULL DEFAULT now()
 );

@@ -8,27 +8,37 @@ import java.util.*
 data class Switch(
   val id: UUID,
   val name: String,
-  val enabled: Boolean,
+  val type: String,
+  val state: String,
+  val publicCode: UUID,
   val userId: UUID,
+  val toggledAt: LocalDateTime?,
   val createdAt: LocalDateTime,
-  val updatedAt: LocalDateTime
 ) {
   fun toJson(): JsonObject = JsonObject()
     .put("id", id.toString())
     .put("name", name)
-    .put("enabled", enabled)
+    .put("type", type)
+    .put("state", state)
+    .put("publicCode", publicCode.toString())
     .put("user_id", userId.toString())
     .put("created_at", createdAt.toString())
-    .put("updated_at", updatedAt.toString())
+    .put("toggled_at", toggledAt.toString())
 
   companion object {
     fun fromRow(row: Row): Switch = Switch(
       id = row.getUUID("id"),
       name = row.getString("name"),
-      enabled = row.getBoolean("enabled"),
+      type = row.getString("type"),
+      state = row.getString("state"),
+      publicCode = row.getUUID("public_code"),
       userId = row.getUUID("user_id"),
+      toggledAt = if (row.getColumnName(row.getColumnIndex("toggled_at")) != null) {
+        row.getLocalDateTime("toggled_at")
+      } else {
+        null
+      },
       createdAt = row.getLocalDateTime("created_at"),
-      updatedAt = row.getLocalDateTime("updated_at")
     )
   }
 }

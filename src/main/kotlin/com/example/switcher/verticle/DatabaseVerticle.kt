@@ -147,10 +147,12 @@ class DatabaseVerticle(private val config: AppConfig) : VerticleBase() {
   private fun handleSwitchCreate(message: Message<JsonObject>) {
     val body = message.body()
     val name = body.getString("name")
-    val enabled = body.getBoolean("enabled", false)
-    val userId = UUID.fromString(body.getString("user_id"))
+    val type = body.getString("type")
+    val state = body.getString("state")
+    val userId = UUID.fromString(body.getString("userId"))
+    val publicCode = UUID.fromString(body.getString("publicCode"))
 
-    switchRepository.create(name, enabled, userId)
+    switchRepository.create(name, type, state, userId, publicCode)
       .onSuccess { switch -> message.reply(switch.toJson()) }
       .onFailure { err ->
         logger.error("Failed to create switch", err)

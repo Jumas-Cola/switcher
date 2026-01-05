@@ -379,12 +379,12 @@ components:
         name:
           type: string
           minLength: 1
-        user_id:
+        type:
           type: string
-          format: uuid
+          enum: [ "SWITCH", "BUTTON" ]
       required:
         - name
-        - user_id
+        - type
 
     UpdateSwitchRequest:
       type: object

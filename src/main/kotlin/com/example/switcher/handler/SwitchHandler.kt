@@ -1,11 +1,15 @@
 package com.example.switcher.handler
 
+import com.example.switcher.dto.request.switches.CreateSwitchDto
+import com.example.switcher.model.enums.SwitchState
+import com.example.switcher.model.enums.SwitchType
 import com.example.switcher.verticle.DatabaseVerticle
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.internal.logging.LoggerFactory
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.RoutingContext
 import io.vertx.openapi.validation.ValidatedRequest
+import java.util.*
 
 class SwitchHandler(private val eventBus: EventBus) {
 
@@ -64,7 +68,15 @@ class SwitchHandler(private val eventBus: EventBus) {
     val validatedRequest = ctx.get<ValidatedRequest>("openApiValidatedRequest")
     val json = validatedRequest.body.jsonObject
 
-    eventBus.request<JsonObject>(DatabaseVerticle.ADDRESS_SWITCH_CREATE, json)
+    val dto = CreateSwitchDto(
+      name = json.getString("name"),
+      type = SwitchType.valueOf(json.getString("type")),
+      state = SwitchState.PRIVATE,
+      userId = ctx.get("userId"),
+      publicCode = UUID.randomUUID(),
+    )
+
+    eventBus.request<JsonObject>(DatabaseVerticle.ADDRESS_SWITCH_CREATE, dto.toJsonObject())
       .onSuccess { reply ->
         ctx.response()
           .setStatusCode(201)

@@ -9,18 +9,18 @@ import java.util.*
 
 class SwitchRepository(private val pool: Pool) {
 
-  fun create(name: String, enabled: Boolean, userId: UUID): Future<Switch> {
+  fun create(name: String, type: String, state: String, userId: UUID, publicCode: UUID): Future<Switch> {
     val id = UUID.randomUUID()
     val now = LocalDateTime.now()
 
     return pool
       .preparedQuery(
         """
-        INSERT INTO switches (id, name, enabled, user_id, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *
+        INSERT INTO switches (id, name, type, state, user_id, public_code, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *
       """.trimIndent()
       )
-      .execute(Tuple.of(id, name, enabled, userId, now, now))
+      .execute(Tuple.of(id, name, type, state, userId, publicCode, now))
       .map { rows -> Switch.fromRow(rows.first()) }
   }
 

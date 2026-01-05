@@ -108,8 +108,8 @@ src/main/resources/
 
 ## Этап 3: Расширение переключателей
 
-- [ ] Создать SwitchType enum — SWITCH, BUTTON
-- [ ] Создать dto/CreateSwitchRequest — валидация входных данных
+- [x] Создать SwitchType enum — SWITCH, BUTTON
+- [x] Создать dto/CreateSwitchRequest — валидация входных данных
 - [ ] Реализовать ShortCodeGenerator — генерация уникальных кодов
 - [ ] Расширить SwitchRepository — findByCode
 - [ ] Расширить SwitchHandler:

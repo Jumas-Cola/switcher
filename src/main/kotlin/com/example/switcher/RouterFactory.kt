@@ -57,7 +57,7 @@ class RouterFactory(private val vertx: Vertx, jwtConfig: JwtConfig) {
         routerBuilder.getRoute("getSwitchesByUser")
           ?.addHandler(jwtAuthMiddleware)
           ?.addHandler(switchHandler::getByUser)
-        routerBuilder.getRoute("createSwitch")
+        routerBuilder.getRoute("createSwitch") // Создание switch
           ?.addHandler(jwtAuthMiddleware)
           ?.addHandler(switchHandler::create)
         routerBuilder.getRoute("updateSwitch")
