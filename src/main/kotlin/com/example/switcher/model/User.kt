@@ -21,7 +21,11 @@ data class User(
     fun fromRow(row: Row): User = User(
       id = row.getUUID("id"),
       email = row.getString("email"),
-      password = row.getString("password"),
+      password = if (row.getColumnName(row.getColumnIndex("password")) != null) {
+        row.getString("password")
+      } else {
+        null
+      },
       createdAt = row.getLocalDateTime("created_at")
     )
   }

@@ -5,6 +5,7 @@ import com.example.switcher.handler.AuthHandler
 import com.example.switcher.handler.HealthHandler
 import com.example.switcher.handler.SwitchHandler
 import com.example.switcher.handler.UserHandler
+import com.example.switcher.middleware.JwtAuthMiddleware
 import com.example.switcher.service.JwtService
 import io.vertx.core.Future
 import io.vertx.core.Vertx
@@ -17,6 +18,7 @@ class RouterFactory(private val vertx: Vertx, jwtConfig: JwtConfig) {
 
   private val eventBus = vertx.eventBus()
   private val jwtService = JwtService(vertx, jwtConfig)
+  private val jwtAuthMiddleware = JwtAuthMiddleware(jwtService, eventBus)
   private val healthHandler = HealthHandler()
   private val authHandler = AuthHandler(eventBus, jwtService)
   private val userHandler = UserHandler(eventBus)
@@ -30,22 +32,40 @@ class RouterFactory(private val vertx: Vertx, jwtConfig: JwtConfig) {
         // Health
         routerBuilder.getRoute("healthCheck")?.addHandler(healthHandler::healthCheck)
 
-        // Auth
+        // Auth (public routes)
         routerBuilder.getRoute("register")?.addHandler(authHandler::register)
         routerBuilder.getRoute("login")?.addHandler(authHandler::login)
 
-        // Users
-        routerBuilder.getRoute("getAllUsers")?.addHandler(userHandler::getAll)
-        routerBuilder.getRoute("getUserById")?.addHandler(userHandler::getById)
-        routerBuilder.getRoute("createUser")?.addHandler(userHandler::create)
+        // Users (protected routes)
+        routerBuilder.getRoute("getAllUsers")
+          ?.addHandler(jwtAuthMiddleware)
+          ?.addHandler(userHandler::getAll)
+        routerBuilder.getRoute("getUserById")
+          ?.addHandler(jwtAuthMiddleware)
+          ?.addHandler(userHandler::getById)
+        routerBuilder.getRoute("createUser")
+          ?.addHandler(jwtAuthMiddleware)
+          ?.addHandler(userHandler::create)
 
-        // Switches
-        routerBuilder.getRoute("getAllSwitches")?.addHandler(switchHandler::getAll)
-        routerBuilder.getRoute("getSwitchById")?.addHandler(switchHandler::getById)
-        routerBuilder.getRoute("getSwitchesByUser")?.addHandler(switchHandler::getByUser)
-        routerBuilder.getRoute("createSwitch")?.addHandler(switchHandler::create)
-        routerBuilder.getRoute("updateSwitch")?.addHandler(switchHandler::update)
-        routerBuilder.getRoute("deleteSwitch")?.addHandler(switchHandler::delete)
+        // Switches (protected routes)
+        routerBuilder.getRoute("getAllSwitches")
+          ?.addHandler(jwtAuthMiddleware)
+          ?.addHandler(switchHandler::getAll)
+        routerBuilder.getRoute("getSwitchById")
+          ?.addHandler(jwtAuthMiddleware)
+          ?.addHandler(switchHandler::getById)
+        routerBuilder.getRoute("getSwitchesByUser")
+          ?.addHandler(jwtAuthMiddleware)
+          ?.addHandler(switchHandler::getByUser)
+        routerBuilder.getRoute("createSwitch")
+          ?.addHandler(jwtAuthMiddleware)
+          ?.addHandler(switchHandler::create)
+        routerBuilder.getRoute("updateSwitch")
+          ?.addHandler(jwtAuthMiddleware)
+          ?.addHandler(switchHandler::update)
+        routerBuilder.getRoute("deleteSwitch")
+          ?.addHandler(jwtAuthMiddleware)
+          ?.addHandler(switchHandler::delete)
 
         val router = routerBuilder.createRouter()
 

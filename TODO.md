@@ -101,10 +101,10 @@ src/main/resources/
 - [x] Реализовать PasswordHasher — хеширование Argon2 и проверка паролей
 - [x] Интегрировать PasswordHasher в AuthHandler (хеширование при регистрации)
 - [x] Расширить UserRepository — findByEmail
-- [ ] Реализовать JwtService — generateToken, getUserFromToken
-- [ ] Создать JwtAuthMiddleware — проверка токена в заголовке Authorization
+- [x] Реализовать JwtService — generateToken, getUserFromToken
+- [x] Создать JwtAuthMiddleware — проверка токена в заголовке Authorization
 - [x] Добавить маршрут POST /api/login в RouterFactory
-- [ ] Защитить приватные маршруты через JwtAuthMiddleware
+- [x] Защитить приватные маршруты через JwtAuthMiddleware
 
 ## Этап 3: Расширение переключателей
 
