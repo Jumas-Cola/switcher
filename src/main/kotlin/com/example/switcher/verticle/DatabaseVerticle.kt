@@ -13,7 +13,7 @@ import io.vertx.pgclient.PgBuilder
 import io.vertx.pgclient.PgConnectOptions
 import io.vertx.sqlclient.Pool
 import io.vertx.sqlclient.PoolOptions
-import java.util.UUID
+import java.util.*
 
 class DatabaseVerticle(private val config: AppConfig) : VerticleBase() {
 

@@ -5,7 +5,7 @@ import io.vertx.core.Future
 import io.vertx.sqlclient.Pool
 import io.vertx.sqlclient.Tuple
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 class SwitchRepository(private val pool: Pool) {
 
@@ -14,10 +14,12 @@ class SwitchRepository(private val pool: Pool) {
     val now = LocalDateTime.now()
 
     return pool
-      .preparedQuery("""
+      .preparedQuery(
+        """
         INSERT INTO switches (id, name, enabled, user_id, created_at, updated_at)
         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *
-      """.trimIndent())
+      """.trimIndent()
+      )
       .execute(Tuple.of(id, name, enabled, userId, now, now))
       .map { rows -> Switch.fromRow(rows.first()) }
   }
@@ -49,10 +51,12 @@ class SwitchRepository(private val pool: Pool) {
     val updatedAt = LocalDateTime.now()
 
     return pool
-      .preparedQuery("""
+      .preparedQuery(
+        """
         UPDATE switches SET name = $1, enabled = $2, updated_at = $3
         WHERE id = $4 RETURNING *
-      """.trimIndent())
+      """.trimIndent()
+      )
       .execute(Tuple.of(name, enabled, updatedAt, id))
       .map { rows ->
         if (rows.size() == 0) null else Switch.fromRow(rows.first())

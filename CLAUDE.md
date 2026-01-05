@@ -17,14 +17,17 @@ The build produces a shadow JAR (fat JAR) with all dependencies at `build/libs/s
 
 This is a Kotlin/Vert.x 5.0.6 reactive web API server targeting JVM 21.
 
-**Core Pattern**: Single-verticle event-driven architecture using `VerticleBase`. The application uses Vert.x's Future-based asynchronous composition.
+**Core Pattern**: Single-verticle event-driven architecture using `VerticleBase`. The application uses Vert.x's
+Future-based asynchronous composition.
 
 **Main Components**:
+
 - `MainVerticle` - HTTP server with Router-based endpoint handling
 - Configuration via HOCON (`application.conf`) with environment variable overrides
 - PostgreSQL client configured but not yet implemented in routes
 
 **Key Dependencies**:
+
 - Vert.x Web for HTTP routing
 - Vert.x PostgreSQL client with SQL client templates
 - Vert.x Kotlin coroutines support for suspend functions
@@ -33,6 +36,7 @@ This is a Kotlin/Vert.x 5.0.6 reactive web API server targeting JVM 21.
 ## Configuration
 
 Environment variables override `application.conf` defaults. See `.env.example` for available options:
+
 - `HTTP_HOST`/`HTTP_PORT` - Server binding (default: 0.0.0.0:8080)
 - `DB_*` - PostgreSQL connection settings
 - `JWT_SECRET`/`JWT_EXPIRATION_TIME` - JWT auth config
@@ -41,6 +45,7 @@ Environment variables override `application.conf` defaults. See `.env.example` f
 ## Local Development
 
 Start PostgreSQL:
+
 ```bash
 docker-compose up -d
 ```

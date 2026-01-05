@@ -1,13 +1,16 @@
 package com.example.switcher.handler
 
 import com.example.switcher.MainVerticle
+import com.example.switcher.config.AppConfig
+import com.example.switcher.config.ConfigLoader
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.client.WebClient
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -16,13 +19,19 @@ import org.junit.jupiter.api.extension.ExtendWith
 class AuthHandlerTest {
 
   private lateinit var webClient: WebClient
+  private lateinit var config: AppConfig
   private val testEmail = "test-${System.currentTimeMillis()}@example.com"
   private val testPassword = "password123"
 
   @BeforeEach
   fun setUp(vertx: Vertx, testContext: VertxTestContext) {
     webClient = WebClient.create(vertx)
-    vertx.deployVerticle(MainVerticle())
+
+    ConfigLoader.load(vertx, "test-application.conf")
+      .compose { loadedConfig ->
+        config = loadedConfig
+        vertx.deployVerticle(MainVerticle("test-application.conf"))
+      }
       .onComplete(testContext.succeeding { testContext.completeNow() })
   }
 
@@ -37,7 +46,7 @@ class AuthHandlerTest {
       .put("email", testEmail)
       .put("password", testPassword)
 
-    webClient.post(8080, "localhost", "/api/register")
+    webClient.post(config.http.port, config.http.host, "/api/register")
       .putHeader("content-type", "application/json")
       .sendJsonObject(registerRequest)
       .onComplete(testContext.succeeding { response ->
@@ -60,7 +69,7 @@ class AuthHandlerTest {
       .put("email", testEmail)
       .put("password", testPassword)
 
-    webClient.post(8080, "localhost", "/api/register")
+    webClient.post(config.http.port, config.http.host, "/api/register")
       .putHeader("content-type", "application/json")
       .sendJsonObject(registerRequest)
       .compose { registerResponse ->
@@ -72,7 +81,7 @@ class AuthHandlerTest {
           .put("email", testEmail)
           .put("password", testPassword)
 
-        webClient.post(8080, "localhost", "/api/login")
+        webClient.post(config.http.port, config.http.host, "/api/login")
           .putHeader("content-type", "application/json")
           .sendJsonObject(loginRequest)
       }
@@ -99,7 +108,7 @@ class AuthHandlerTest {
       .put("email", testEmail)
       .put("password", testPassword)
 
-    webClient.post(8080, "localhost", "/api/register")
+    webClient.post(config.http.port, config.http.host, "/api/register")
       .putHeader("content-type", "application/json")
       .sendJsonObject(registerRequest)
       .compose { registerResponse ->
@@ -111,7 +120,7 @@ class AuthHandlerTest {
           .put("email", testEmail)
           .put("password", "wrongpassword")
 
-        webClient.post(8080, "localhost", "/api/login")
+        webClient.post(config.http.port, config.http.host, "/api/login")
           .putHeader("content-type", "application/json")
           .sendJsonObject(loginRequest)
       }
@@ -129,7 +138,7 @@ class AuthHandlerTest {
       .put("email", "nonexistent@example.com")
       .put("password", testPassword)
 
-    webClient.post(8080, "localhost", "/api/login")
+    webClient.post(config.http.port, config.http.host, "/api/login")
       .putHeader("content-type", "application/json")
       .sendJsonObject(loginRequest)
       .onComplete(testContext.succeeding { response ->

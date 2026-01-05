@@ -4,11 +4,11 @@ import com.example.switcher.config.JwtConfig
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.JWTOptions
-import io.vertx.ext.auth.jwt.JWTAuth
-import io.vertx.ext.auth.jwt.JWTAuthOptions
 import io.vertx.ext.auth.PubSecKeyOptions
 import io.vertx.ext.auth.User
 import io.vertx.ext.auth.authentication.TokenCredentials
+import io.vertx.ext.auth.jwt.JWTAuth
+import io.vertx.ext.auth.jwt.JWTAuthOptions
 
 class JwtService(vertx: Vertx, private val config: JwtConfig) {
 

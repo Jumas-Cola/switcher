@@ -1,17 +1,16 @@
 package com.example.switcher
 
 import com.example.switcher.config.AppConfig
+import com.example.switcher.config.ConfigLoader
 import com.example.switcher.verticle.DatabaseVerticle
 import com.example.switcher.verticle.HttpVerticle
-import io.vertx.config.ConfigRetriever
-import io.vertx.config.ConfigRetrieverOptions
-import io.vertx.config.ConfigStoreOptions
 import io.vertx.core.Future
 import io.vertx.core.VerticleBase
 import io.vertx.core.internal.logging.LoggerFactory
-import io.vertx.core.json.JsonObject
 
-class MainVerticle : VerticleBase() {
+class MainVerticle(
+  private val configPath: String = "application.conf"
+) : VerticleBase() {
 
   private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -27,15 +26,7 @@ class MainVerticle : VerticleBase() {
   }
 
   private fun loadConfig(): Future<AppConfig> {
-    val hoconStore = ConfigStoreOptions()
-      .setType("file")
-      .setFormat("hocon")
-      .setConfig(JsonObject().put("path", "application.conf"))
-
-    val options = ConfigRetrieverOptions().addStore(hoconStore)
-    val retriever = ConfigRetriever.create(vertx, options)
-
-    return retriever.config.map { json -> AppConfig.fromJson(json) }
+    return ConfigLoader.load(vertx, configPath)
   }
 
   private fun deployDatabaseVerticle(config: AppConfig): Future<String> {

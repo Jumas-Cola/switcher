@@ -3,7 +3,7 @@ package com.example.switcher.model
 import io.vertx.core.json.JsonObject
 import io.vertx.sqlclient.Row
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 data class User(
   val id: UUID,

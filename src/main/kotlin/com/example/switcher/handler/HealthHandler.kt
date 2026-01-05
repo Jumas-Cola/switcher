@@ -13,8 +13,10 @@ class HealthHandler {
 
     ctx.response()
       .putHeader("content-type", "application/json")
-      .end(JsonObject()
-        .put("status", "ok")
-        .encode())
+      .end(
+        JsonObject()
+          .put("status", "ok")
+          .encode()
+      )
   }
 }

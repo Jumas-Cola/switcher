@@ -140,36 +140,36 @@ src/main/resources/
 
 ## API Endpoints
 
-| Method | Endpoint                     | Handler       | Auth | Description          |
-|--------|------------------------------|---------------|------|----------------------|
-| GET    | `/api/health`                | HealthHandler | -    | Health check         |
-| POST   | `/api/register`              | AuthHandler   | -    | Регистрация          |
-| POST   | `/api/login`                 | AuthHandler   | -    | (TODO) Авторизация   |
-| GET    | `/api/users`                 | UserHandler   | JWT  | List users           |
-| GET    | `/api/users/:id`             | UserHandler   | JWT  | Get user by ID       |
-| POST   | `/api/users`                 | UserHandler   | JWT  | Create user          |
-| GET    | `/api/switches`              | SwitchHandler | JWT  | List switches        |
-| GET    | `/api/switches/:id`          | SwitchHandler | JWT  | Get switch by ID     |
-| GET    | `/api/users/:userId/switches`| SwitchHandler | JWT  | Get user's switches  |
-| POST   | `/api/switches`              | SwitchHandler | JWT  | Create switch        |
-| PUT    | `/api/switches/:id`          | SwitchHandler | JWT  | Update switch        |
-| DELETE | `/api/switches/:id`          | SwitchHandler | JWT  | Delete switch        |
-| GET    | `/public/:code`              | PublicHandler | -    | (TODO) Public access |
+| Method | Endpoint                      | Handler       | Auth | Description          |
+|--------|-------------------------------|---------------|------|----------------------|
+| GET    | `/api/health`                 | HealthHandler | -    | Health check         |
+| POST   | `/api/register`               | AuthHandler   | -    | Регистрация          |
+| POST   | `/api/login`                  | AuthHandler   | -    | (TODO) Авторизация   |
+| GET    | `/api/users`                  | UserHandler   | JWT  | List users           |
+| GET    | `/api/users/:id`              | UserHandler   | JWT  | Get user by ID       |
+| POST   | `/api/users`                  | UserHandler   | JWT  | Create user          |
+| GET    | `/api/switches`               | SwitchHandler | JWT  | List switches        |
+| GET    | `/api/switches/:id`           | SwitchHandler | JWT  | Get switch by ID     |
+| GET    | `/api/users/:userId/switches` | SwitchHandler | JWT  | Get user's switches  |
+| POST   | `/api/switches`               | SwitchHandler | JWT  | Create switch        |
+| PUT    | `/api/switches/:id`           | SwitchHandler | JWT  | Update switch        |
+| DELETE | `/api/switches/:id`           | SwitchHandler | JWT  | Delete switch        |
+| GET    | `/public/:code`               | PublicHandler | -    | (TODO) Public access |
 
 ## EventBus Addresses
 
-| Address              | Description              |
-|----------------------|--------------------------|
-| `db.user.create`     | Create user              |
-| `db.user.getAll`     | Get all users            |
-| `db.user.getById`    | Get user by ID           |
-| `db.user.findByEmail`| (TODO) Find user by email|
-| `db.switch.create`   | Create switch            |
-| `db.switch.getAll`   | Get all switches         |
-| `db.switch.getById`  | Get switch by ID         |
-| `db.switch.getByUser`| Get switches by user ID  |
-| `db.switch.update`   | Update switch            |
-| `db.switch.delete`   | Delete switch            |
+| Address               | Description               |
+|-----------------------|---------------------------|
+| `db.user.create`      | Create user               |
+| `db.user.getAll`      | Get all users             |
+| `db.user.getById`     | Get user by ID            |
+| `db.user.findByEmail` | (TODO) Find user by email |
+| `db.switch.create`    | Create switch             |
+| `db.switch.getAll`    | Get all switches          |
+| `db.switch.getById`   | Get switch by ID          |
+| `db.switch.getByUser` | Get switches by user ID   |
+| `db.switch.update`    | Update switch             |
+| `db.switch.delete`    | Delete switch             |
 
 ## Поток данных
 

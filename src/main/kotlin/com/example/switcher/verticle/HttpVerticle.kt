@@ -1,7 +1,7 @@
 package com.example.switcher.verticle
 
-import com.example.switcher.config.AppConfig
 import com.example.switcher.RouterFactory
+import com.example.switcher.config.AppConfig
 import io.vertx.core.Future
 import io.vertx.core.VerticleBase
 import io.vertx.core.http.HttpServer

@@ -5,7 +5,7 @@ import io.vertx.core.Future
 import io.vertx.sqlclient.Pool
 import io.vertx.sqlclient.Tuple
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 class UserRepository(private val pool: Pool) {
 
@@ -15,7 +15,7 @@ class UserRepository(private val pool: Pool) {
 
     return pool
       .preparedQuery("INSERT INTO users (id, email, password, created_at) VALUES ($1, $2, $3, $4) RETURNING *")
-      .execute(Tuple.of(id, email, password,createdAt))
+      .execute(Tuple.of(id, email, password, createdAt))
       .map { rows -> User.fromRow(rows.first()) }
   }
 

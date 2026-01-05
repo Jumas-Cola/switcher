@@ -24,7 +24,7 @@ paths:
   /api/health:
     get:
       operationId: healthCheck
-      tags: [health]
+      tags: [ health ]
       summary: Health check
       responses:
         "200":
@@ -37,7 +37,7 @@ paths:
   /api/register:
     post:
       operationId: register
-      tags: [auth]
+      tags: [ auth ]
       summary: Register a new user
       requestBody:
         required: true
@@ -62,7 +62,7 @@ paths:
   /api/login:
     post:
       operationId: login
-      tags: [auth]
+      tags: [ auth ]
       summary: Login user
       requestBody:
         required: true
@@ -83,7 +83,7 @@ paths:
   /api/users:
     get:
       operationId: getAllUsers
-      tags: [users]
+      tags: [ users ]
       summary: Get all users
       responses:
         "200":
@@ -96,7 +96,7 @@ paths:
                   $ref: "#/components/schemas/User"
     post:
       operationId: createUser
-      tags: [users]
+      tags: [ users ]
       summary: Create a new user
       requestBody:
         required: true
@@ -121,7 +121,7 @@ paths:
   /api/users/{id}:
     get:
       operationId: getUserById
-      tags: [users]
+      tags: [ users ]
       summary: Get user by ID
       parameters:
         - name: id
@@ -147,7 +147,7 @@ paths:
   /api/users/{userId}/switches:
     get:
       operationId: getSwitchesByUser
-      tags: [switches]
+      tags: [ switches ]
       summary: Get all switches for a user
       parameters:
         - name: userId
@@ -169,7 +169,7 @@ paths:
   /api/switches:
     get:
       operationId: getAllSwitches
-      tags: [switches]
+      tags: [ switches ]
       summary: Get all switches
       responses:
         "200":
@@ -182,7 +182,7 @@ paths:
                   $ref: "#/components/schemas/Switch"
     post:
       operationId: createSwitch
-      tags: [switches]
+      tags: [ switches ]
       summary: Create a new switch
       requestBody:
         required: true
@@ -207,7 +207,7 @@ paths:
   /api/switches/{id}:
     get:
       operationId: getSwitchById
-      tags: [switches]
+      tags: [ switches ]
       summary: Get switch by ID
       parameters:
         - name: id
@@ -231,7 +231,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
     put:
       operationId: updateSwitch
-      tags: [switches]
+      tags: [ switches ]
       summary: Update a switch
       parameters:
         - name: id
@@ -261,7 +261,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
     delete:
       operationId: deleteSwitch
-      tags: [switches]
+      tags: [ switches ]
       summary: Delete a switch
       parameters:
         - name: id

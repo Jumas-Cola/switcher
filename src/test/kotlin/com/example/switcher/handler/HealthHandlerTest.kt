@@ -1,6 +1,8 @@
 package com.example.switcher.handler
 
 import com.example.switcher.MainVerticle
+import com.example.switcher.config.AppConfig
+import com.example.switcher.config.ConfigLoader
 import io.vertx.core.Vertx
 import io.vertx.ext.web.client.WebClient
 import io.vertx.junit5.VertxExtension
@@ -14,17 +16,23 @@ import org.junit.jupiter.api.extension.ExtendWith
 class HealthHandlerTest {
 
   private lateinit var webClient: WebClient
+  private lateinit var config: AppConfig
 
   @BeforeEach
   fun setUp(vertx: Vertx, testContext: VertxTestContext) {
     webClient = WebClient.create(vertx)
-    vertx.deployVerticle(MainVerticle())
+
+    ConfigLoader.load(vertx, "test-application.conf")
+      .compose { loadedConfig ->
+        config = loadedConfig
+        vertx.deployVerticle(MainVerticle("test-application.conf"))
+      }
       .onComplete(testContext.succeeding { testContext.completeNow() })
   }
 
   @Test
   fun `healthCheck returns status ok`(vertx: Vertx, testContext: VertxTestContext) {
-    webClient.get(8080, "localhost", "/api/health")
+    webClient.get(config.http.port, config.http.host, "/api/health")
       .send()
       .onComplete(testContext.succeeding { response ->
         testContext.verify {

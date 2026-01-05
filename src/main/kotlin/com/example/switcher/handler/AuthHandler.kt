@@ -59,9 +59,10 @@ class AuthHandler(private val eventBus: EventBus, private val jwtService: JwtSer
 
           val response = JsonObject()
             .put("token", token)
-            .put("user", JsonObject()
-              .put("id", userId)
-              .put("email", email)
+            .put(
+              "user", JsonObject()
+                .put("id", userId)
+                .put("email", email)
             )
 
           ctx.response()
