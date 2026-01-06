@@ -80,97 +80,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /api/users:
-    get:
-      operationId: getAllUsers
-      tags: [ users ]
-      summary: Get all users
-      responses:
-        "200":
-          description: List of users
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/User"
-    post:
-      operationId: createUser
-      tags: [ users ]
-      summary: Create a new user
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateUserRequest"
-      responses:
-        "201":
-          description: User created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
-        "400":
-          description: Invalid request data
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
-  /api/users/{id}:
-    get:
-      operationId: getUserById
-      tags: [ users ]
-      summary: Get user by ID
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        "200":
-          description: User found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
-        "404":
-          description: User not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
-  /api/users/{userId}/switches:
+  /api/switches:
     get:
       operationId: getSwitchesByUser
       tags: [ switches ]
-      summary: Get all switches for a user
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        "200":
-          description: List of switches
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Switch"
-
-  /api/switches:
-    get:
-      operationId: getAllSwitches
-      tags: [ switches ]
-      summary: Get all switches
+      summary: Get all switches for a current user
       responses:
         "200":
           description: List of switches
@@ -229,36 +143,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-    put:
-      operationId: updateSwitch
-      tags: [ switches ]
-      summary: Update a switch
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateSwitchRequest"
-      responses:
-        "200":
-          description: Switch updated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Switch"
-        "404":
-          description: Switch not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
     delete:
       operationId: deleteSwitch
       tags: [ switches ]
@@ -273,6 +157,32 @@ paths:
       responses:
         "204":
           description: Switch deleted
+        "404":
+          description: Switch not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/switches/{id}/toggle:
+    put:
+      operationId: toggleSwitch
+      tags: [ switches ]
+      summary: Toggle a switch
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Switch updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Switch"
         "404":
           description: Switch not found
           content:
@@ -316,11 +226,22 @@ components:
           format: uuid
         name:
           type: string
-        enabled:
-          type: boolean
+        type:
+          type: string
+          enum: [ "SWITCH", "BUTTON" ]
+        state:
+          type: string
+          enum: [ "ON", "OFF" ]
+        publicCode:
+          type: string
+          format: uuid
         user_id:
           type: string
           format: uuid
+        toggled_at:
+          type: string
+          format: date-time
+          nullable: true
         created_at:
           type: string
           format: date-time
@@ -330,7 +251,9 @@ components:
       required:
         - id
         - name
-        - enabled
+        - type
+        - state
+        - publicCode
         - user_id
         - created_at
         - updated_at
@@ -385,14 +308,6 @@ components:
       required:
         - name
         - type
-
-    UpdateSwitchRequest:
-      type: object
-      properties:
-        name:
-          type: string
-        enabled:
-          type: boolean
 
     ErrorResponse:
       type: object

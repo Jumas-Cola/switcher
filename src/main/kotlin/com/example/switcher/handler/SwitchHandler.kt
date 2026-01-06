@@ -15,19 +15,6 @@ class SwitchHandler(private val eventBus: EventBus) {
 
   private val logger = LoggerFactory.getLogger(this::class.java)
 
-  fun getAll(ctx: RoutingContext) {
-    eventBus.request<Any>(DatabaseVerticle.ADDRESS_SWITCH_GET_ALL, JsonObject())
-      .onSuccess { reply ->
-        ctx.response()
-          .putHeader("content-type", "application/json")
-          .end(reply.body().toString())
-      }
-      .onFailure { err ->
-        logger.error("Failed to get switches", err)
-        ctx.response().setStatusCode(500).end()
-      }
-  }
-
   fun getById(ctx: RoutingContext) {
     val id = ctx.pathParam("id")
     val request = JsonObject().put("id", id)
@@ -39,7 +26,7 @@ class SwitchHandler(private val eventBus: EventBus) {
           .end(reply.body().encode())
       }
       .onFailure { err ->
-        if (err.message?.contains("404") == true) {
+        if (err is io.vertx.core.eventbus.ReplyException && err.failureCode() == 404) {
           ctx.response().setStatusCode(404).end()
         } else {
           logger.error("Failed to get switch", err)
@@ -49,8 +36,8 @@ class SwitchHandler(private val eventBus: EventBus) {
   }
 
   fun getByUser(ctx: RoutingContext) {
-    val userId = ctx.pathParam("userId")
-    val request = JsonObject().put("user_id", userId)
+    val userId = ctx.get<String>("userId")
+    val request = JsonObject().put("userId", userId)
 
     eventBus.request<Any>(DatabaseVerticle.ADDRESS_SWITCH_GET_BY_USER, request)
       .onSuccess { reply ->
@@ -71,7 +58,7 @@ class SwitchHandler(private val eventBus: EventBus) {
     val dto = CreateSwitchDto(
       name = json.getString("name"),
       type = SwitchType.valueOf(json.getString("type")),
-      state = SwitchState.PRIVATE,
+      state = SwitchState.OFF,
       userId = ctx.get("userId"),
       publicCode = UUID.randomUUID(),
     )
@@ -89,22 +76,41 @@ class SwitchHandler(private val eventBus: EventBus) {
       }
   }
 
-  fun update(ctx: RoutingContext) {
+  fun toggle(ctx: RoutingContext) {
     val id = ctx.pathParam("id")
-    val validatedRequest = ctx.get<ValidatedRequest>("openApiValidatedRequest")
-    val json = validatedRequest.body.jsonObject.put("id", id)
+    val request = JsonObject().put("id", id)
 
-    eventBus.request<JsonObject>(DatabaseVerticle.ADDRESS_SWITCH_UPDATE, json)
+    eventBus.request<JsonObject>(DatabaseVerticle.ADDRESS_SWITCH_GET_BY_ID, request)
       .onSuccess { reply ->
-        ctx.response()
-          .putHeader("content-type", "application/json")
-          .end(reply.body().encode())
+        val type = SwitchType.valueOf(reply.body().getString("type"))
+        val state = SwitchState.valueOf(reply.body().getString("state"))
+
+        if (state == SwitchState.OFF || type == SwitchType.SWITCH) {
+          val json = JsonObject()
+            .put("id", id)
+            .put("state", if (state == SwitchState.OFF) SwitchState.ON else SwitchState.OFF)
+
+          eventBus.request<JsonObject>(DatabaseVerticle.ADDRESS_SWITCH_UPDATE, json)
+            .onSuccess { reply ->
+              ctx.response()
+                .putHeader("content-type", "application/json")
+                .end(reply.body().encode())
+            }
+            .onFailure { err ->
+              if (err is io.vertx.core.eventbus.ReplyException && err.failureCode() == 404) {
+                ctx.response().setStatusCode(404).end()
+              } else {
+                logger.error("Failed to toggle switch state", err)
+                ctx.response().setStatusCode(500).end()
+              }
+            }
+        }
       }
       .onFailure { err ->
-        if (err.message?.contains("404") == true) {
+        if (err is io.vertx.core.eventbus.ReplyException && err.failureCode() == 404) {
           ctx.response().setStatusCode(404).end()
         } else {
-          logger.error("Failed to update switch", err)
+          logger.error("Failed to get switch", err)
           ctx.response().setStatusCode(500).end()
         }
       }

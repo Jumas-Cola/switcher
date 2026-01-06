@@ -110,11 +110,9 @@ src/main/resources/
 
 - [x] Создать SwitchType enum — SWITCH, BUTTON
 - [x] Создать dto/CreateSwitchRequest — валидация входных данных
-- [ ] Реализовать ShortCodeGenerator — генерация уникальных кодов
-- [ ] Расширить SwitchRepository — findByCode
-- [ ] Расширить SwitchHandler:
-  - [ ] PATCH /api/switches/{id}/toggle — переключить состояние
-  - [ ] POST /api/switches/{id}/publish — опубликовать
+- [x] Расширить SwitchRepository — findByCode
+- [x] Расширить SwitchHandler:
+  - [x] PATCH /api/switches/{id}/toggle — переключить состояние
 
 ## Этап 4: Публичный доступ
 

@@ -40,6 +40,15 @@ class SwitchRepository(private val pool: Pool) {
       }
   }
 
+  fun getByPublicCode(publicCode: UUID): Future<Switch?> {
+    return pool
+      .preparedQuery("SELECT * FROM switches WHERE public_code = $1")
+      .execute(Tuple.of(publicCode))
+      .map { rows ->
+        if (rows.size() == 0) null else Switch.fromRow(rows.first())
+      }
+  }
+
   fun getByUserId(userId: UUID): Future<List<Switch>> {
     return pool
       .preparedQuery("SELECT * FROM switches WHERE user_id = $1")
@@ -47,17 +56,17 @@ class SwitchRepository(private val pool: Pool) {
       .map { rows -> rows.map { Switch.fromRow(it) } }
   }
 
-  fun update(id: UUID, name: String, enabled: Boolean): Future<Switch?> {
-    val updatedAt = LocalDateTime.now()
+  fun update(id: UUID, state: String): Future<Switch?> {
+    val toggledAt = LocalDateTime.now()
 
     return pool
       .preparedQuery(
         """
-        UPDATE switches SET name = $1, enabled = $2, updated_at = $3
-        WHERE id = $4 RETURNING *
+        UPDATE switches SET state = $1, toggled_at = $2
+        WHERE id = $3 RETURNING *
       """.trimIndent()
       )
-      .execute(Tuple.of(name, enabled, updatedAt, id))
+      .execute(Tuple.of(state, toggledAt, id))
       .map { rows ->
         if (rows.size() == 0) null else Switch.fromRow(rows.first())
       }

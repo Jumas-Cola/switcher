@@ -4,7 +4,7 @@ import com.example.switcher.config.JwtConfig
 import com.example.switcher.handler.AuthHandler
 import com.example.switcher.handler.HealthHandler
 import com.example.switcher.handler.SwitchHandler
-import com.example.switcher.handler.UserHandler
+import com.example.switcher.middleware.CheckSwitchOwnerMiddleware
 import com.example.switcher.middleware.JwtAuthMiddleware
 import com.example.switcher.service.JwtService
 import io.vertx.core.Future
@@ -19,9 +19,9 @@ class RouterFactory(private val vertx: Vertx, jwtConfig: JwtConfig) {
   private val eventBus = vertx.eventBus()
   private val jwtService = JwtService(vertx, jwtConfig)
   private val jwtAuthMiddleware = JwtAuthMiddleware(jwtService, eventBus)
+  private val checkSwitchOwnerMiddleware = CheckSwitchOwnerMiddleware(eventBus)
   private val healthHandler = HealthHandler()
   private val authHandler = AuthHandler(eventBus, jwtService)
-  private val userHandler = UserHandler(eventBus)
   private val switchHandler = SwitchHandler(eventBus)
 
   fun create(): Future<Router> {
@@ -36,35 +36,23 @@ class RouterFactory(private val vertx: Vertx, jwtConfig: JwtConfig) {
         routerBuilder.getRoute("register")?.addHandler(authHandler::register)
         routerBuilder.getRoute("login")?.addHandler(authHandler::login)
 
-        // Users (protected routes)
-        routerBuilder.getRoute("getAllUsers")
-          ?.addHandler(jwtAuthMiddleware)
-          ?.addHandler(userHandler::getAll)
-        routerBuilder.getRoute("getUserById")
-          ?.addHandler(jwtAuthMiddleware)
-          ?.addHandler(userHandler::getById)
-        routerBuilder.getRoute("createUser")
-          ?.addHandler(jwtAuthMiddleware)
-          ?.addHandler(userHandler::create)
-
         // Switches (protected routes)
-        routerBuilder.getRoute("getAllSwitches")
-          ?.addHandler(jwtAuthMiddleware)
-          ?.addHandler(switchHandler::getAll)
-        routerBuilder.getRoute("getSwitchById")
+        routerBuilder.getRoute("getSwitchById") // Получение switch по ID
           ?.addHandler(jwtAuthMiddleware)
           ?.addHandler(switchHandler::getById)
-        routerBuilder.getRoute("getSwitchesByUser")
+        routerBuilder.getRoute("getSwitchesByUser") // Получение всех switch текущего пользователя
           ?.addHandler(jwtAuthMiddleware)
           ?.addHandler(switchHandler::getByUser)
         routerBuilder.getRoute("createSwitch") // Создание switch
           ?.addHandler(jwtAuthMiddleware)
           ?.addHandler(switchHandler::create)
-        routerBuilder.getRoute("updateSwitch")
+        routerBuilder.getRoute("toggleSwitch") // Публикация switch
           ?.addHandler(jwtAuthMiddleware)
-          ?.addHandler(switchHandler::update)
+          ?.addHandler(checkSwitchOwnerMiddleware)
+          ?.addHandler(switchHandler::toggle)
         routerBuilder.getRoute("deleteSwitch")
           ?.addHandler(jwtAuthMiddleware)
+          ?.addHandler(checkSwitchOwnerMiddleware)
           ?.addHandler(switchHandler::delete)
 
         val router = routerBuilder.createRouter()

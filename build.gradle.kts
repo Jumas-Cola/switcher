@@ -79,6 +79,7 @@ tasks.withType<Test> {
   testLogging {
     events = setOf(PASSED, SKIPPED, FAILED)
   }
+  maxParallelForks = 1
 }
 
 tasks.withType<JavaExec> {

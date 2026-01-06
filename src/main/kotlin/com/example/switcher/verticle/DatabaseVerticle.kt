@@ -25,12 +25,10 @@ class DatabaseVerticle(private val config: AppConfig) : VerticleBase() {
 
   companion object {
     const val ADDRESS_USER_CREATE = "db.user.create"
-    const val ADDRESS_USER_GET_ALL = "db.user.getAll"
     const val ADDRESS_USER_GET_BY_ID = "db.user.getById"
     const val ADDRESS_USER_GET_BY_EMAIL = "db.user.getByEmail"
 
     const val ADDRESS_SWITCH_CREATE = "db.switch.create"
-    const val ADDRESS_SWITCH_GET_ALL = "db.switch.getAll"
     const val ADDRESS_SWITCH_GET_BY_ID = "db.switch.getById"
     const val ADDRESS_SWITCH_GET_BY_USER = "db.switch.getByUser"
     const val ADDRESS_SWITCH_UPDATE = "db.switch.update"
@@ -70,12 +68,10 @@ class DatabaseVerticle(private val config: AppConfig) : VerticleBase() {
     val eventBus = vertx.eventBus()
 
     eventBus.consumer(ADDRESS_USER_CREATE, ::handleUserCreate)
-    eventBus.consumer(ADDRESS_USER_GET_ALL, ::handleUserGetAll)
     eventBus.consumer(ADDRESS_USER_GET_BY_ID, ::handleUserGetById)
     eventBus.consumer(ADDRESS_USER_GET_BY_EMAIL, ::handleUserGetByEmail)
 
     eventBus.consumer(ADDRESS_SWITCH_CREATE, ::handleSwitchCreate)
-    eventBus.consumer(ADDRESS_SWITCH_GET_ALL, ::handleSwitchGetAll)
     eventBus.consumer(ADDRESS_SWITCH_GET_BY_ID, ::handleSwitchGetById)
     eventBus.consumer(ADDRESS_SWITCH_GET_BY_USER, ::handleSwitchGetByUser)
     eventBus.consumer(ADDRESS_SWITCH_UPDATE, ::handleSwitchUpdate)
@@ -92,18 +88,6 @@ class DatabaseVerticle(private val config: AppConfig) : VerticleBase() {
       .onSuccess { user -> message.reply(user.toJson()) }
       .onFailure { err ->
         logger.error("Failed to create user", err)
-        message.fail(500, err.message)
-      }
-  }
-
-  private fun handleUserGetAll(message: Message<JsonObject>) {
-    userRepository.getAll()
-      .onSuccess { users ->
-        val json = JsonArray(users.map { it.toJson() })
-        message.reply(json)
-      }
-      .onFailure { err ->
-        logger.error("Failed to get users", err)
         message.fail(500, err.message)
       }
   }
@@ -160,18 +144,6 @@ class DatabaseVerticle(private val config: AppConfig) : VerticleBase() {
       }
   }
 
-  private fun handleSwitchGetAll(message: Message<JsonObject>) {
-    switchRepository.getAll()
-      .onSuccess { switches ->
-        val json = JsonArray(switches.map { it.toJson() })
-        message.reply(json)
-      }
-      .onFailure { err ->
-        logger.error("Failed to get switches", err)
-        message.fail(500, err.message)
-      }
-  }
-
   private fun handleSwitchGetById(message: Message<JsonObject>) {
     val id = UUID.fromString(message.body().getString("id"))
 
@@ -190,7 +162,7 @@ class DatabaseVerticle(private val config: AppConfig) : VerticleBase() {
   }
 
   private fun handleSwitchGetByUser(message: Message<JsonObject>) {
-    val userId = UUID.fromString(message.body().getString("user_id"))
+    val userId = UUID.fromString(message.body().getString("userId"))
 
     switchRepository.getByUserId(userId)
       .onSuccess { switches ->
@@ -206,10 +178,9 @@ class DatabaseVerticle(private val config: AppConfig) : VerticleBase() {
   private fun handleSwitchUpdate(message: Message<JsonObject>) {
     val body = message.body()
     val id = UUID.fromString(body.getString("id"))
-    val name = body.getString("name")
-    val enabled = body.getBoolean("enabled")
+    val state = body.getString("state")
 
-    switchRepository.update(id, name, enabled)
+    switchRepository.update(id, state)
       .onSuccess { switch ->
         if (switch == null) {
           message.fail(404, "Switch not found")

@@ -23,7 +23,8 @@ data class Switch(
     .put("publicCode", publicCode.toString())
     .put("user_id", userId.toString())
     .put("created_at", createdAt.toString())
-    .put("toggled_at", toggledAt.toString())
+    .put("updated_at", createdAt.toString())
+    .put("toggled_at", toggledAt?.toString())
 
   companion object {
     fun fromRow(row: Row): Switch = Switch(
