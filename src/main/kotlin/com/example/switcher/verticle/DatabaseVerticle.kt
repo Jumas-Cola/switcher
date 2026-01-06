@@ -52,6 +52,8 @@ class DatabaseVerticle(private val config: AppConfig) : VerticleBase() {
       .setDatabase(config.database.database)
       .setUser(config.database.user)
       .setPassword(config.database.password)
+      .setReconnectAttempts(5)
+      .setReconnectInterval(1000)
 
     val poolOptions = PoolOptions()
       .setMaxSize(config.database.maxPoolSize)
