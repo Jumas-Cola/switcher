@@ -21,6 +21,7 @@ class SwitchHandlerTest {
 
   private lateinit var webClient: WebClient
   private lateinit var config: AppConfig
+  private lateinit var deploymentId: String
   private val testEmail = "test-switch-${System.currentTimeMillis()}@example.com"
   private val testPassword = "password123"
   private lateinit var authToken: String
@@ -35,7 +36,8 @@ class SwitchHandlerTest {
         config = loadedConfig
         vertx.deployVerticle(MainVerticle("test-application.conf"))
       }
-      .compose {
+      .compose { id ->
+        deploymentId = id
         val registerRequest = JsonObject()
           .put("email", testEmail)
           .put("password", testPassword)
@@ -62,8 +64,14 @@ class SwitchHandlerTest {
   }
 
   @AfterEach
-  fun tearDown(vertx: Vertx) {
+  fun tearDown(vertx: Vertx, testContext: VertxTestContext) {
     webClient.close()
+    if (::deploymentId.isInitialized) {
+      vertx.undeploy(deploymentId)
+        .onComplete(testContext.succeeding { testContext.completeNow() })
+    } else {
+      testContext.completeNow()
+    }
   }
 
   @Test

@@ -20,6 +20,7 @@ class AuthHandlerTest {
 
   private lateinit var webClient: WebClient
   private lateinit var config: AppConfig
+  private lateinit var deploymentId: String
   private val testEmail = "test-${System.currentTimeMillis()}@example.com"
   private val testPassword = "password123"
 
@@ -32,12 +33,21 @@ class AuthHandlerTest {
         config = loadedConfig
         vertx.deployVerticle(MainVerticle("test-application.conf"))
       }
-      .onComplete(testContext.succeeding { testContext.completeNow() })
+      .onComplete(testContext.succeeding { id ->
+        deploymentId = id
+        testContext.completeNow()
+      })
   }
 
   @AfterEach
-  fun tearDown(vertx: Vertx) {
+  fun tearDown(vertx: Vertx, testContext: VertxTestContext) {
     webClient.close()
+    if (::deploymentId.isInitialized) {
+      vertx.undeploy(deploymentId)
+        .onComplete(testContext.succeeding { testContext.completeNow() })
+    } else {
+      testContext.completeNow()
+    }
   }
 
   @Test

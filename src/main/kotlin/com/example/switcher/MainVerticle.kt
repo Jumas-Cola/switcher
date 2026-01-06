@@ -54,17 +54,8 @@ class MainVerticle(
   }
 
   override fun stop(): Future<Void> {
-    val futures = mutableListOf<Future<Void>>()
-
-    httpVerticleId?.let { futures.add(vertx.undeploy(it)) }
-    databaseVerticleId?.let { futures.add(vertx.undeploy(it)) }
-
-    if (futures.isEmpty()) {
-      return Future.succeededFuture()
-    }
-
-    return Future.join(futures)
-      .onSuccess { logger.info("All verticles undeployed") }
-      .mapEmpty()
+    // Child verticles are automatically undeployed by Vert.x
+    logger.info("MainVerticle stopped")
+    return Future.succeededFuture()
   }
 }

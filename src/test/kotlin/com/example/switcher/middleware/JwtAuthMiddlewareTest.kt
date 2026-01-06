@@ -18,6 +18,7 @@ class JwtAuthMiddlewareTest {
 
   private lateinit var webClient: WebClient
   private lateinit var jwtService: JwtService
+  private lateinit var server: io.vertx.core.http.HttpServer
   private val port = 8888
 
   @BeforeEach
@@ -65,13 +66,22 @@ class JwtAuthMiddlewareTest {
       vertx.createHttpServer()
         .requestHandler(router)
         .listen(port)
-        .onComplete(testContext.succeeding { testContext.completeNow() })
+        .onComplete(testContext.succeeding { httpServer ->
+          server = httpServer
+          testContext.completeNow()
+        })
     }
   }
 
   @AfterEach
-  fun tearDown() {
+  fun tearDown(vertx: Vertx, testContext: VertxTestContext) {
     webClient.close()
+    if (::server.isInitialized) {
+      server.close()
+        .onComplete(testContext.succeeding { testContext.completeNow() })
+    } else {
+      testContext.completeNow()
+    }
   }
 
   @Test
