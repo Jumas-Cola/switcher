@@ -61,6 +61,13 @@ jobs:
         done
         echo "PostgreSQL is up and running"
 
+    - name: Run database migrations
+      run: ./gradlew flywayMigrate
+      env:
+        DB_URL: jdbc:postgresql://localhost:5432/switchapi
+        DB_USER: switchapi
+        DB_PASSWORD: switchapi
+
     - name: Build with Gradle Wrapper
       run: ./gradlew build
 
