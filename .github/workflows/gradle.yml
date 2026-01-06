@@ -51,6 +51,16 @@ jobs:
     - name: Copy .env.example to .env
       run: cp .env.example .env
 
+    - name: Wait for PostgreSQL
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client
+        until PGPASSWORD=switchapi psql -h localhost -U switchapi -d switchapi -c '\q'; do
+          echo "PostgreSQL is unavailable - sleeping"
+          sleep 1
+        done
+        echo "PostgreSQL is up and running"
+
     - name: Build with Gradle Wrapper
       run: ./gradlew build
 
