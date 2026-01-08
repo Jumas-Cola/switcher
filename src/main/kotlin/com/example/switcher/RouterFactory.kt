@@ -3,6 +3,7 @@ package com.example.switcher
 import com.example.switcher.config.JwtConfig
 import com.example.switcher.handler.AuthHandler
 import com.example.switcher.handler.HealthHandler
+import com.example.switcher.handler.PublicSwitchHandler
 import com.example.switcher.handler.SwitchHandler
 import com.example.switcher.middleware.CheckSwitchOwnerMiddleware
 import com.example.switcher.middleware.JwtAuthMiddleware
@@ -23,6 +24,7 @@ class RouterFactory(private val vertx: Vertx, jwtConfig: JwtConfig) {
   private val healthHandler = HealthHandler()
   private val authHandler = AuthHandler(eventBus, jwtService)
   private val switchHandler = SwitchHandler(eventBus)
+  private val publicSwitchHandler = PublicSwitchHandler(eventBus)
 
   fun create(): Future<Router> {
     return OpenAPIContract.from(vertx, "openapi.yaml")
@@ -54,6 +56,10 @@ class RouterFactory(private val vertx: Vertx, jwtConfig: JwtConfig) {
           ?.addHandler(jwtAuthMiddleware)
           ?.addHandler(checkSwitchOwnerMiddleware)
           ?.addHandler(switchHandler::delete)
+
+        // Public routes
+        routerBuilder.getRoute("getPublicSwitch")
+          ?.addHandler(publicSwitchHandler::getByPublicCode)
 
         val router = routerBuilder.createRouter()
 

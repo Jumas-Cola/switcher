@@ -116,8 +116,8 @@ src/main/resources/
 
 ## Этап 4: Публичный доступ
 
-- [ ] Создать PublicHandler — GET /public/{code}
-- [ ] Добавить маршрут в RouterFactory
+- [x] Создать PublicHandler — GET /public/{code}
+- [x] Добавить маршрут в RouterFactory
 
 ## Этап 5: Обработка ошибок и валидация
 

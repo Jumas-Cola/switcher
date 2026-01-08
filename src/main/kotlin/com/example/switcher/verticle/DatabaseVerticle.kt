@@ -30,6 +30,7 @@ class DatabaseVerticle(private val config: AppConfig) : VerticleBase() {
 
     const val ADDRESS_SWITCH_CREATE = "db.switch.create"
     const val ADDRESS_SWITCH_GET_BY_ID = "db.switch.getById"
+    const val ADDRESS_SWITCH_GET_BY_PUBLIC_CODE = "db.switch.getByPublicCode"
     const val ADDRESS_SWITCH_GET_BY_USER = "db.switch.getByUser"
     const val ADDRESS_SWITCH_UPDATE = "db.switch.update"
     const val ADDRESS_SWITCH_DELETE = "db.switch.delete"
@@ -73,6 +74,7 @@ class DatabaseVerticle(private val config: AppConfig) : VerticleBase() {
 
     eventBus.consumer(ADDRESS_SWITCH_CREATE, ::handleSwitchCreate)
     eventBus.consumer(ADDRESS_SWITCH_GET_BY_ID, ::handleSwitchGetById)
+    eventBus.consumer(ADDRESS_SWITCH_GET_BY_PUBLIC_CODE, ::handleSwitchGetByPublicCode)
     eventBus.consumer(ADDRESS_SWITCH_GET_BY_USER, ::handleSwitchGetByUser)
     eventBus.consumer(ADDRESS_SWITCH_UPDATE, ::handleSwitchUpdate)
     eventBus.consumer(ADDRESS_SWITCH_DELETE, ::handleSwitchDelete)
@@ -148,6 +150,23 @@ class DatabaseVerticle(private val config: AppConfig) : VerticleBase() {
     val id = UUID.fromString(message.body().getString("id"))
 
     switchRepository.getById(id)
+      .onSuccess { switch ->
+        if (switch == null) {
+          message.fail(404, "Switch not found")
+        } else {
+          message.reply(switch.toJson())
+        }
+      }
+      .onFailure { err ->
+        logger.error("Failed to get switch", err)
+        message.fail(500, err.message)
+      }
+  }
+
+  private fun handleSwitchGetByPublicCode(message: Message<JsonObject>) {
+    val code = UUID.fromString(message.body().getString("code"))
+
+    switchRepository.getByPublicCode(code)
       .onSuccess { switch ->
         if (switch == null) {
           message.fail(404, "Switch not found")

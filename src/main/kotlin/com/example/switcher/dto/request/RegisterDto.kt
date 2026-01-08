@@ -2,7 +2,7 @@ package com.example.switcher.dto.request
 
 import io.vertx.core.json.JsonObject
 
-class RegisterDto(
+data class RegisterDto(
   val email: String,
   val password: String,
 ) {

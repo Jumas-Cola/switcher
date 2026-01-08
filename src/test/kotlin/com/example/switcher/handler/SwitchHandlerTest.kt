@@ -9,9 +9,7 @@ import io.vertx.ext.web.client.WebClient
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -87,7 +85,6 @@ class SwitchHandlerTest {
           assertEquals("SWITCH", body.getString("type"))
           assertEquals(userId, body.getString("user_id"))
           assertNotNull(body.getString("created_at"))
-          assertNotNull(body.getString("updated_at"))
         }
         testContext.completeNow()
       })

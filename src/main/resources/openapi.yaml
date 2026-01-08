@@ -190,6 +190,32 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /api/public/{code}:
+    get:
+      operationId: getPublicSwitch
+      tags: [ public ]
+      summary: Get public switch by code
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Get switch by code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicSwitch"
+        "404":
+          description: Switch not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthResponse:
@@ -245,9 +271,6 @@ components:
         created_at:
           type: string
           format: date-time
-        updated_at:
-          type: string
-          format: date-time
       required:
         - id
         - name
@@ -256,7 +279,20 @@ components:
         - publicCode
         - user_id
         - created_at
-        - updated_at
+
+    PublicSwitch:
+      type: object
+      properties:
+        state:
+          type: string
+          enum: [ "ON", "OFF" ]
+        publicCode:
+          type: string
+          format: uuid
+        toggled_at:
+          type: string
+          format: date-time
+          nullable: true
 
     RegisterRequest:
       type: object

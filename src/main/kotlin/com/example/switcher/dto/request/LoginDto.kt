@@ -2,7 +2,7 @@ package com.example.switcher.dto.request
 
 import io.vertx.core.json.JsonObject
 
-class LoginDto(
+data class LoginDto(
   val email: String,
 ) {
   fun toJsonObject(): JsonObject {

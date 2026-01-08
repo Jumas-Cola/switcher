@@ -20,10 +20,9 @@ data class Switch(
     .put("name", name)
     .put("type", type)
     .put("state", state)
-    .put("publicCode", publicCode.toString())
+    .put("public_code", publicCode.toString())
     .put("user_id", userId.toString())
     .put("created_at", createdAt.toString())
-    .put("updated_at", createdAt.toString())
     .put("toggled_at", toggledAt?.toString())
 
   companion object {
