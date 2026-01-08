@@ -54,9 +54,23 @@ class SwitchHandler(private val eventBus: EventBus) {
 
     eventBus.request<Any>(DatabaseVerticle.ADDRESS_SWITCH_GET_BY_USER, request)
       .onSuccess { reply ->
+        val switches = reply.body() as io.vertx.core.json.JsonArray
+        val responses = switches.map { switchObj ->
+          val obj = switchObj as JsonObject
+          SwitchResponse(
+            id = obj.getString("id"),
+            name = obj.getString("name"),
+            type = obj.getString("type"),
+            state = obj.getString("state"),
+            publicCode = obj.getString("public_code"),
+            userId = obj.getString("user_id"),
+            toggledAt = obj.getString("toggled_at"),
+            createdAt = obj.getString("created_at"),
+          )
+        }
         ctx.response()
           .putHeader("content-type", "application/json")
-          .end(reply.body().toString())
+          .end(io.vertx.core.json.JsonArray(responses.map { JsonObject.mapFrom(it) }).encode())
       }
       .onFailure { err ->
         logger.error("Failed to get switches for user", err)

@@ -155,7 +155,7 @@ class SwitchHandlerTest {
           val firstSwitch = body.getJsonObject(0)
           assertNotNull(firstSwitch.getString("id"))
           assertNotNull(firstSwitch.getString("name"))
-          assertEquals(userId, firstSwitch.getString("user_id"))
+          assertEquals(userId, firstSwitch.getString("userId"))
         }
         testContext.completeNow()
       })
