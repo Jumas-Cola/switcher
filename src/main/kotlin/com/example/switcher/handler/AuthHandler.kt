@@ -2,6 +2,7 @@ package com.example.switcher.handler
 
 import com.example.switcher.dto.request.LoginDto
 import com.example.switcher.dto.request.RegisterDto
+import com.example.switcher.dto.response.users.UserResponse
 import com.example.switcher.service.JwtService
 import com.example.switcher.util.PasswordHasher
 import com.example.switcher.verticle.DatabaseVerticle
@@ -30,10 +31,17 @@ class AuthHandler(private val eventBus: EventBus, private val jwtService: JwtSer
 
     eventBus.request<JsonObject>(DatabaseVerticle.ADDRESS_USER_CREATE, dto.toJsonObject())
       .onSuccess { reply ->
+        val body = reply.body()
         ctx.response()
           .setStatusCode(201)
           .putHeader("content-type", "application/json")
-          .end(reply.body().encode())
+          .end(
+            UserResponse(
+              id = body.getString("id"),
+              email = body.getString("email"),
+              createdAt = body.getString("created_at"),
+            ).toResponse()
+          )
       }
       .onFailure { err ->
         logger.error("Failed to create user", err)
@@ -60,9 +68,11 @@ class AuthHandler(private val eventBus: EventBus, private val jwtService: JwtSer
           val response = JsonObject()
             .put("token", token)
             .put(
-              "user", JsonObject()
-                .put("id", userId)
-                .put("email", email)
+              "user", UserResponse(
+                id = userId,
+                email = email,
+                createdAt = user.getString("created_at"),
+              )
             )
 
           ctx.response()

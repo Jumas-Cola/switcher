@@ -57,7 +57,6 @@ class AuthHandlerTest {
           val body = response.bodyAsJsonObject()
           assertNotNull(body.getString("id"))
           assertEquals(testEmail, body.getString("email"))
-          assertNotNull(body.getString("password"))
         }
         testContext.completeNow()
       })
