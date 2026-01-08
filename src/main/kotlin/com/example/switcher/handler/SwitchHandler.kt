@@ -1,6 +1,7 @@
 package com.example.switcher.handler
 
 import com.example.switcher.dto.request.switches.CreateSwitchDto
+import com.example.switcher.dto.response.switches.SwitchResponse
 import com.example.switcher.model.enums.SwitchState
 import com.example.switcher.model.enums.SwitchType
 import com.example.switcher.verticle.DatabaseVerticle
@@ -21,9 +22,21 @@ class SwitchHandler(private val eventBus: EventBus) {
 
     eventBus.request<JsonObject>(DatabaseVerticle.ADDRESS_SWITCH_GET_BY_ID, request)
       .onSuccess { reply ->
+        val body = reply.body()
         ctx.response()
           .putHeader("content-type", "application/json")
-          .end(reply.body().encode())
+          .end(
+            SwitchResponse(
+              id = body.getString("id"),
+              name = body.getString("name"),
+              type = body.getString("type"),
+              state = body.getString("state"),
+              publicCode = body.getString("public_code"),
+              userId = body.getString("user_id"),
+              toggledAt = body.getString("toggled_at"),
+              createdAt = body.getString("created_at"),
+            ).toResponse()
+          )
       }
       .onFailure { err ->
         if (err is io.vertx.core.eventbus.ReplyException && err.failureCode() == 404) {
@@ -65,10 +78,22 @@ class SwitchHandler(private val eventBus: EventBus) {
 
     eventBus.request<JsonObject>(DatabaseVerticle.ADDRESS_SWITCH_CREATE, dto.toJsonObject())
       .onSuccess { reply ->
+        val body = reply.body()
         ctx.response()
           .setStatusCode(201)
           .putHeader("content-type", "application/json")
-          .end(reply.body().encode())
+          .end(
+            SwitchResponse(
+              id = body.getString("id"),
+              name = body.getString("name"),
+              type = body.getString("type"),
+              state = body.getString("state"),
+              publicCode = body.getString("public_code"),
+              userId = body.getString("user_id"),
+              toggledAt = body.getString("toggled_at"),
+              createdAt = body.getString("created_at"),
+            ).toResponse()
+          )
       }
       .onFailure { err ->
         logger.error("Failed to create switch", err)
@@ -92,9 +117,21 @@ class SwitchHandler(private val eventBus: EventBus) {
 
           eventBus.request<JsonObject>(DatabaseVerticle.ADDRESS_SWITCH_UPDATE, json)
             .onSuccess { reply ->
+              val body = reply.body()
               ctx.response()
                 .putHeader("content-type", "application/json")
-                .end(reply.body().encode())
+                .end(
+                  SwitchResponse(
+                    id = body.getString("id"),
+                    name = body.getString("name"),
+                    type = body.getString("type"),
+                    state = body.getString("state"),
+                    publicCode = body.getString("public_code"),
+                    userId = body.getString("user_id"),
+                    toggledAt = body.getString("toggled_at"),
+                    createdAt = body.getString("created_at"),
+                  ).toResponse()
+                )
             }
             .onFailure { err ->
               if (err is io.vertx.core.eventbus.ReplyException && err.failureCode() == 404) {

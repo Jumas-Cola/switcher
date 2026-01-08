@@ -73,7 +73,7 @@ class PublicSwitchHandlerTest {
       .putHeader("Authorization", "Bearer $authToken")
       .sendJsonObject(createRequest)
       .compose { createResponse ->
-        val publicCode = createResponse.bodyAsJsonObject().getString("public_code")
+        val publicCode = createResponse.bodyAsJsonObject().getString("publicCode")
 
         // Делаем запрос БЕЗ аутентификации к публичному эндпоинту
         webClient.get(config.http.port, config.http.host, "/api/public/$publicCode")
@@ -105,7 +105,7 @@ class PublicSwitchHandlerTest {
       .putHeader("Authorization", "Bearer $authToken")
       .sendJsonObject(createRequest)
       .compose { createResponse ->
-        val publicCode = createResponse.bodyAsJsonObject().getString("public_code")
+        val publicCode = createResponse.bodyAsJsonObject().getString("publicCode")
 
         // Явно НЕ передаем Authorization header
         webClient.get(config.http.port, config.http.host, "/api/public/$publicCode")
@@ -145,7 +145,7 @@ class PublicSwitchHandlerTest {
       .sendJsonObject(createRequest)
       .compose { createResponse ->
         val switchId = createResponse.bodyAsJsonObject().getString("id")
-        val publicCode = createResponse.bodyAsJsonObject().getString("public_code")
+        val publicCode = createResponse.bodyAsJsonObject().getString("publicCode")
 
         // Переключаем свитч
         webClient.put(config.http.port, config.http.host, "/api/switches/$switchId/toggle")
@@ -181,7 +181,7 @@ class PublicSwitchHandlerTest {
       .sendJsonObject(createRequest)
       .compose { createResponse ->
         val switchId = createResponse.bodyAsJsonObject().getString("id")
-        val publicCode = createResponse.bodyAsJsonObject().getString("public_code")
+        val publicCode = createResponse.bodyAsJsonObject().getString("publicCode")
 
         webClient.put(config.http.port, config.http.host, "/api/switches/$switchId/toggle")
           .putHeader("Authorization", "Bearer $authToken")

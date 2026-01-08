@@ -83,8 +83,8 @@ class SwitchHandlerTest {
           assertNotNull(body.getString("id"))
           assertEquals("Test Switch", body.getString("name"))
           assertEquals("SWITCH", body.getString("type"))
-          assertEquals(userId, body.getString("user_id"))
-          assertNotNull(body.getString("created_at"))
+          assertEquals(userId, body.getString("userId"))
+          assertNotNull(body.getString("createdAt"))
         }
         testContext.completeNow()
       })
@@ -198,7 +198,7 @@ class SwitchHandlerTest {
           val body = response.bodyAsJsonObject()
           assertNotNull(body.getString("id"))
           assertEquals("Test Switch", body.getString("name"))
-          assertEquals(userId, body.getString("user_id"))
+          assertEquals(userId, body.getString("userId"))
         }
         testContext.completeNow()
       })
