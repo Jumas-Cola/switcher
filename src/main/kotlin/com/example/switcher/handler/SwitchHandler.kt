@@ -2,10 +2,13 @@ package com.example.switcher.handler
 
 import com.example.switcher.dto.request.switches.CreateSwitchDto
 import com.example.switcher.dto.response.switches.SwitchResponse
+import com.example.switcher.error.AppException
+import com.example.switcher.error.NotFoundException
 import com.example.switcher.model.enums.SwitchState
 import com.example.switcher.model.enums.SwitchType
 import com.example.switcher.verticle.DatabaseVerticle
 import io.vertx.core.eventbus.EventBus
+import io.vertx.core.eventbus.ReplyException
 import io.vertx.core.internal.logging.LoggerFactory
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.RoutingContext
@@ -39,11 +42,14 @@ class SwitchHandler(private val eventBus: EventBus) {
           )
       }
       .onFailure { err ->
-        if (err is io.vertx.core.eventbus.ReplyException && err.failureCode() == 404) {
-          ctx.response().setStatusCode(404).end()
-        } else {
-          logger.error("Failed to get switch", err)
-          ctx.response().setStatusCode(500).end()
+        when {
+          err is ReplyException && err.failureCode() == 404 -> {
+            ctx.fail(NotFoundException("Switch", id))
+          }
+          else -> {
+            logger.error("Failed to get switch", err)
+            ctx.fail(AppException("Failed to retrieve switch", statusCode = 500, errorCode = "SWITCH_RETRIEVAL_FAILED", cause = err))
+          }
         }
       }
   }
@@ -74,7 +80,7 @@ class SwitchHandler(private val eventBus: EventBus) {
       }
       .onFailure { err ->
         logger.error("Failed to get switches for user", err)
-        ctx.response().setStatusCode(500).end()
+        ctx.fail(AppException("Failed to retrieve user switches", statusCode = 500, errorCode = "USER_SWITCHES_RETRIEVAL_FAILED", cause = err))
       }
   }
 
@@ -111,7 +117,7 @@ class SwitchHandler(private val eventBus: EventBus) {
       }
       .onFailure { err ->
         logger.error("Failed to create switch", err)
-        ctx.response().setStatusCode(500).end()
+        ctx.fail(AppException("Failed to create switch", statusCode = 500, errorCode = "SWITCH_CREATION_FAILED", cause = err))
       }
   }
 
@@ -148,21 +154,27 @@ class SwitchHandler(private val eventBus: EventBus) {
                 )
             }
             .onFailure { err ->
-              if (err is io.vertx.core.eventbus.ReplyException && err.failureCode() == 404) {
-                ctx.response().setStatusCode(404).end()
-              } else {
-                logger.error("Failed to toggle switch state", err)
-                ctx.response().setStatusCode(500).end()
+              when {
+                err is ReplyException && err.failureCode() == 404 -> {
+                  ctx.fail(NotFoundException("Switch", id))
+                }
+                else -> {
+                  logger.error("Failed to toggle switch state", err)
+                  ctx.fail(AppException("Failed to toggle switch", statusCode = 500, errorCode = "SWITCH_TOGGLE_FAILED", cause = err))
+                }
               }
             }
         }
       }
       .onFailure { err ->
-        if (err is io.vertx.core.eventbus.ReplyException && err.failureCode() == 404) {
-          ctx.response().setStatusCode(404).end()
-        } else {
-          logger.error("Failed to get switch", err)
-          ctx.response().setStatusCode(500).end()
+        when {
+          err is ReplyException && err.failureCode() == 404 -> {
+            ctx.fail(NotFoundException("Switch", id))
+          }
+          else -> {
+            logger.error("Failed to get switch", err)
+            ctx.fail(AppException("Failed to retrieve switch for toggle", statusCode = 500, errorCode = "SWITCH_RETRIEVAL_FAILED", cause = err))
+          }
         }
       }
   }
@@ -174,12 +186,19 @@ class SwitchHandler(private val eventBus: EventBus) {
     eventBus.request<JsonObject>(DatabaseVerticle.ADDRESS_SWITCH_DELETE, request)
       .onSuccess { reply ->
         ctx.response()
-          .putHeader("content-type", "application/json")
-          .end(reply.body().encode())
+          .setStatusCode(204)
+          .end()
       }
       .onFailure { err ->
-        logger.error("Failed to delete switch", err)
-        ctx.response().setStatusCode(500).end()
+        when {
+          err is ReplyException && err.failureCode() == 404 -> {
+            ctx.fail(NotFoundException("Switch", id))
+          }
+          else -> {
+            logger.error("Failed to delete switch", err)
+            ctx.fail(AppException("Failed to delete switch", statusCode = 500, errorCode = "SWITCH_DELETION_FAILED", cause = err))
+          }
+        }
       }
   }
 }

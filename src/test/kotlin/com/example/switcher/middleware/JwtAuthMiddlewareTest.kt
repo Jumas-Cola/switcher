@@ -1,6 +1,7 @@
 package com.example.switcher.middleware
 
 import com.example.switcher.config.JwtConfig
+import com.example.switcher.handler.GlobalErrorHandler
 import com.example.switcher.service.JwtService
 import io.vertx.core.Vertx
 import io.vertx.ext.web.Router
@@ -59,6 +60,13 @@ class JwtAuthMiddlewareTest {
     router.get("/public").handler { ctx ->
       ctx.response().setStatusCode(200).end("OK")
     }
+
+    // Add global error handler
+    router.errorHandler(400, GlobalErrorHandler())
+    router.errorHandler(401, GlobalErrorHandler())
+    router.errorHandler(403, GlobalErrorHandler())
+    router.errorHandler(404, GlobalErrorHandler())
+    router.errorHandler(500, GlobalErrorHandler())
 
     // Небольшая задержка для регистрации EventBus consumer
     vertx.setTimer(100) {

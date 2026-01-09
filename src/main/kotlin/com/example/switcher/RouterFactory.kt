@@ -2,6 +2,7 @@ package com.example.switcher
 
 import com.example.switcher.config.JwtConfig
 import com.example.switcher.handler.AuthHandler
+import com.example.switcher.handler.GlobalErrorHandler
 import com.example.switcher.handler.HealthHandler
 import com.example.switcher.handler.PublicSwitchHandler
 import com.example.switcher.handler.SwitchHandler
@@ -39,16 +40,16 @@ class RouterFactory(private val vertx: Vertx, jwtConfig: JwtConfig) {
         routerBuilder.getRoute("login")?.addHandler(authHandler::login)
 
         // Switches (protected routes)
-        routerBuilder.getRoute("getSwitchById") // Получение switch по ID
+        routerBuilder.getRoute("getSwitchById")
           ?.addHandler(jwtAuthMiddleware)
           ?.addHandler(switchHandler::getById)
-        routerBuilder.getRoute("getSwitchesByUser") // Получение всех switch текущего пользователя
+        routerBuilder.getRoute("getSwitchesByUser")
           ?.addHandler(jwtAuthMiddleware)
           ?.addHandler(switchHandler::getByUser)
-        routerBuilder.getRoute("createSwitch") // Создание switch
+        routerBuilder.getRoute("createSwitch")
           ?.addHandler(jwtAuthMiddleware)
           ?.addHandler(switchHandler::create)
-        routerBuilder.getRoute("toggleSwitch") // Публикация switch
+        routerBuilder.getRoute("toggleSwitch")
           ?.addHandler(jwtAuthMiddleware)
           ?.addHandler(checkSwitchOwnerMiddleware)
           ?.addHandler(switchHandler::toggle)
@@ -62,6 +63,13 @@ class RouterFactory(private val vertx: Vertx, jwtConfig: JwtConfig) {
           ?.addHandler(publicSwitchHandler::getByPublicCode)
 
         val router = routerBuilder.createRouter()
+
+        // Global error handler - catches all exceptions and returns standardized error responses
+        router.errorHandler(400, GlobalErrorHandler())
+        router.errorHandler(401, GlobalErrorHandler())
+        router.errorHandler(403, GlobalErrorHandler())
+        router.errorHandler(404, GlobalErrorHandler())
+        router.errorHandler(500, GlobalErrorHandler())
 
         // Swagger UI - serve from classpath
         router.route("/swagger-ui/*").handler(

@@ -53,7 +53,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/User"
         "400":
-          description: Invalid request data
+          description: Invalid request data or email already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -73,8 +79,29 @@ paths:
       responses:
         "200":
           description: User logged in successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT authentication token
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
         "400":
           description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -94,6 +121,18 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Switch"
+        "401":
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     post:
       operationId: createSwitch
       tags: [ switches ]
@@ -117,6 +156,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /api/switches/{id}:
     get:
@@ -130,6 +181,7 @@ paths:
           schema:
             type: string
             format: uuid
+          description: UUID of the switch
       responses:
         "200":
           description: Switch found
@@ -137,8 +189,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Switch"
+        "400":
+          description: Invalid UUID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - access denied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Switch not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -154,11 +230,36 @@ paths:
           schema:
             type: string
             format: uuid
+          description: UUID of the switch to delete
       responses:
         "204":
-          description: Switch deleted
+          description: Switch deleted successfully
+        "400":
+          description: Invalid UUID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - access denied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Switch not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -168,7 +269,7 @@ paths:
     put:
       operationId: toggleSwitch
       tags: [ switches ]
-      summary: Toggle a switch
+      summary: Toggle a switch state (ON/OFF)
       parameters:
         - name: id
           in: path
@@ -176,15 +277,40 @@ paths:
           schema:
             type: string
             format: uuid
+          description: UUID of the switch to toggle
       responses:
         "200":
-          description: Switch updated
+          description: Switch toggled successfully
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Switch"
+        "400":
+          description: Invalid UUID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - access denied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Switch not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -194,7 +320,7 @@ paths:
     get:
       operationId: getPublicSwitch
       tags: [ public ]
-      summary: Get public switch by code
+      summary: Get public switch by code (no authentication required)
       parameters:
         - name: code
           in: path
@@ -202,15 +328,28 @@ paths:
           schema:
             type: string
             format: uuid
+          description: Public code (UUID) of the switch
       responses:
         "200":
-          description: Get switch by code
+          description: Public switch found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/PublicSwitch"
+        "400":
+          description: Invalid UUID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Switch not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -300,9 +439,17 @@ components:
         email:
           type: string
           format: email
+          description: User's email address
+          minLength: 3
+          maxLength: 255
+          pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+          example: "user@example.com"
         password:
           type: string
+          description: User's password (minimum 6 characters)
           minLength: 6
+          maxLength: 100
+          example: "securePassword123"
       required:
         - email
         - password
@@ -313,8 +460,17 @@ components:
         email:
           type: string
           format: email
+          description: User's email address
+          minLength: 3
+          maxLength: 255
+          pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+          example: "user@example.com"
         password:
           type: string
+          description: User's password
+          minLength: 1
+          maxLength: 100
+          example: "securePassword123"
       required:
         - email
         - password
@@ -325,9 +481,17 @@ components:
         email:
           type: string
           format: email
+          description: User's email address
+          minLength: 3
+          maxLength: 255
+          pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+          example: "user@example.com"
         password:
           type: string
+          description: User's password (minimum 6 characters)
           minLength: 6
+          maxLength: 100
+          example: "securePassword123"
       required:
         - email
         - password
@@ -337,10 +501,16 @@ components:
       properties:
         name:
           type: string
+          description: Name of the switch (alphanumeric, spaces, hyphens, and underscores allowed)
           minLength: 1
+          maxLength: 100
+          pattern: '^[a-zA-Z0-9\s\-_]+$'
+          example: "Living Room Light"
         type:
           type: string
+          description: Type of the switch (SWITCH maintains state, BUTTON is momentary)
           enum: [ "SWITCH", "BUTTON" ]
+          example: "SWITCH"
       required:
         - name
         - type
@@ -350,7 +520,57 @@ components:
       properties:
         error:
           type: string
+          description: Error type/category
+          example: "Validation Error"
         message:
           type: string
+          description: Human-readable error description
+          example: "Invalid input data"
+        errorCode:
+          type: string
+          description: Machine-readable error code for client-side handling
+          example: "VALIDATION_ERROR"
+        statusCode:
+          type: integer
+          description: HTTP status code
+          example: 400
+        validationErrors:
+          type: array
+          description: List of field-specific validation errors (only present for validation errors)
+          items:
+            $ref: "#/components/schemas/ValidationError"
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO-8601 timestamp when the error occurred
+          example: "2024-01-15T10:30:00Z"
+        path:
+          type: string
+          description: Request path where the error occurred
+          example: "/api/register"
       required:
         - error
+        - message
+        - errorCode
+        - statusCode
+        - timestamp
+
+    ValidationError:
+      type: object
+      properties:
+        field:
+          type: string
+          description: Name of the field that failed validation
+          example: "email"
+        message:
+          type: string
+          description: Human-readable validation error message
+          example: "Invalid email format"
+        code:
+          type: string
+          description: Machine-readable validation error code
+          example: "INVALID_EMAIL"
+      required:
+        - field
+        - message
+        - code

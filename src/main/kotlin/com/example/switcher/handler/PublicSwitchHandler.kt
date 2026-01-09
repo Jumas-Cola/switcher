@@ -1,8 +1,11 @@
 package com.example.switcher.handler
 
 import com.example.switcher.dto.response.switches.PublicSwitchResponse
+import com.example.switcher.error.AppException
+import com.example.switcher.error.NotFoundException
 import com.example.switcher.verticle.DatabaseVerticle
 import io.vertx.core.eventbus.EventBus
+import io.vertx.core.eventbus.ReplyException
 import io.vertx.core.internal.logging.LoggerFactory
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.RoutingContext
@@ -29,11 +32,14 @@ class PublicSwitchHandler(private val eventBus: EventBus) {
           .end(response.toJsonObject().encode())
       }
       .onFailure { err ->
-        if (err is io.vertx.core.eventbus.ReplyException && err.failureCode() == 404) {
-          ctx.response().setStatusCode(404).end()
-        } else {
-          logger.error("Failed to get switch", err)
-          ctx.response().setStatusCode(500).end()
+        when {
+          err is ReplyException && err.failureCode() == 404 -> {
+            ctx.fail(NotFoundException("Switch with public code '$code' not found"))
+          }
+          else -> {
+            logger.error("Failed to get switch by public code", err)
+            ctx.fail(AppException("Failed to retrieve switch", statusCode = 500, errorCode = "PUBLIC_SWITCH_RETRIEVAL_FAILED", cause = err))
+          }
         }
       }
   }

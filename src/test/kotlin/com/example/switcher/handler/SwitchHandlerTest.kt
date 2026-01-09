@@ -380,7 +380,7 @@ class SwitchHandlerTest {
       }
       .onComplete(testContext.succeeding { response ->
         testContext.verify {
-          assertEquals(200, response.statusCode())
+          assertEquals(204, response.statusCode())
         }
         testContext.completeNow()
       })
@@ -421,7 +421,7 @@ class SwitchHandlerTest {
       }
       .compose { deleteResponse ->
         testContext.verify {
-          assertEquals(200, deleteResponse.statusCode())
+          assertEquals(204, deleteResponse.statusCode())
         }
 
         webClient.get(config.http.port, config.http.host, "/api/switches/$switchId")

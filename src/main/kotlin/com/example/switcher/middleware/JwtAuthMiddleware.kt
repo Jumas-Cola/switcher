@@ -1,5 +1,7 @@
 package com.example.switcher.middleware
 
+import com.example.switcher.error.AppException
+import com.example.switcher.error.UnauthorizedException
 import com.example.switcher.service.JwtService
 import com.example.switcher.verticle.DatabaseVerticle
 import io.vertx.core.Handler
@@ -27,10 +29,7 @@ class JwtAuthMiddleware(
 
     if (authHeader == null || !authHeader.startsWith("Bearer ")) {
       logger.warn("Missing or invalid Authorization header")
-      ctx.response()
-        .setStatusCode(401)
-        .putHeader("content-type", "application/json")
-        .end("""{"error":"Missing or invalid Authorization header"}""")
+      ctx.fail(UnauthorizedException.missingToken())
       return
     }
 
@@ -60,18 +59,12 @@ class JwtAuthMiddleware(
           ctx.next()
         } catch (e: Exception) {
           logger.error("Failed to process user data", e)
-          ctx.response()
-            .setStatusCode(500)
-            .putHeader("content-type", "application/json")
-            .end("""{"error":"Internal server error"}""")
+          ctx.fail(AppException("Failed to authenticate user", statusCode = 500, errorCode = "AUTH_PROCESSING_FAILED", cause = e))
         }
       }
       .onFailure { err ->
         logger.warn("JWT authentication failed: ${err.message}", err)
-        ctx.response()
-          .setStatusCode(401)
-          .putHeader("content-type", "application/json")
-          .end("""{"error":"Invalid or expired token"}""")
+        ctx.fail(UnauthorizedException.invalidToken())
       }
   }
 

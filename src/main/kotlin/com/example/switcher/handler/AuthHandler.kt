@@ -3,10 +3,15 @@ package com.example.switcher.handler
 import com.example.switcher.dto.request.LoginDto
 import com.example.switcher.dto.request.RegisterDto
 import com.example.switcher.dto.response.users.UserResponse
+import com.example.switcher.error.AppException
+import com.example.switcher.error.UnauthorizedException
+import com.example.switcher.error.ValidationException
+import com.example.switcher.error.response.ValidationError
 import com.example.switcher.service.JwtService
 import com.example.switcher.util.PasswordHasher
 import com.example.switcher.verticle.DatabaseVerticle
 import io.vertx.core.eventbus.EventBus
+import io.vertx.core.eventbus.ReplyException
 import io.vertx.core.internal.logging.LoggerFactory
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.RoutingContext
@@ -45,7 +50,21 @@ class AuthHandler(private val eventBus: EventBus, private val jwtService: JwtSer
       }
       .onFailure { err ->
         logger.error("Failed to create user", err)
-        ctx.response().setStatusCode(500).end()
+
+        when (err) {
+          is ReplyException -> {
+            // Check if it's a duplicate email error (PostgreSQL unique constraint violation)
+            if (err.message?.contains("duplicate key", ignoreCase = true) == true ||
+                err.message?.contains("users_email_key", ignoreCase = true) == true) {
+              ctx.fail(ValidationException(
+                ValidationError("email", "Email already exists", "EMAIL_EXISTS")
+              ))
+            } else {
+              ctx.fail(AppException("Failed to register user", statusCode = 500, errorCode = "REGISTRATION_FAILED", cause = err))
+            }
+          }
+          else -> ctx.fail(AppException("Failed to register user", statusCode = 500, errorCode = "REGISTRATION_FAILED", cause = err))
+        }
       }
   }
 
@@ -80,15 +99,19 @@ class AuthHandler(private val eventBus: EventBus, private val jwtService: JwtSer
             .putHeader("content-type", "application/json")
             .end(response.encode())
         } else {
-          ctx.response().setStatusCode(401).end()
+          ctx.fail(UnauthorizedException.invalidCredentials())
         }
       }
       .onFailure { err ->
-        if (err is io.vertx.core.eventbus.ReplyException && err.failureCode() == 404) {
-          ctx.response().setStatusCode(401).end()
-        } else {
-          logger.error("Failed to login", err)
-          ctx.response().setStatusCode(500).end()
+        when {
+          err is ReplyException && err.failureCode() == 404 -> {
+            // User not found - return same error as invalid password for security
+            ctx.fail(UnauthorizedException.invalidCredentials())
+          }
+          else -> {
+            logger.error("Failed to login", err)
+            ctx.fail(AppException("Login failed", statusCode = 500, errorCode = "LOGIN_FAILED", cause = err))
+          }
         }
       }
   }
