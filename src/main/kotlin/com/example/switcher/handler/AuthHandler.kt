@@ -55,15 +55,33 @@ class AuthHandler(private val eventBus: EventBus, private val jwtService: JwtSer
           is ReplyException -> {
             // Check if it's a duplicate email error (PostgreSQL unique constraint violation)
             if (err.message?.contains("duplicate key", ignoreCase = true) == true ||
-                err.message?.contains("users_email_key", ignoreCase = true) == true) {
-              ctx.fail(ValidationException(
-                ValidationError("email", "Email already exists", "EMAIL_EXISTS")
-              ))
+              err.message?.contains("users_email_key", ignoreCase = true) == true
+            ) {
+              ctx.fail(
+                ValidationException(
+                  ValidationError("email", "Email already exists", "EMAIL_EXISTS")
+                )
+              )
             } else {
-              ctx.fail(AppException("Failed to register user", statusCode = 500, errorCode = "REGISTRATION_FAILED", cause = err))
+              ctx.fail(
+                AppException(
+                  "Failed to register user",
+                  statusCode = 500,
+                  errorCode = "REGISTRATION_FAILED",
+                  cause = err
+                )
+              )
             }
           }
-          else -> ctx.fail(AppException("Failed to register user", statusCode = 500, errorCode = "REGISTRATION_FAILED", cause = err))
+
+          else -> ctx.fail(
+            AppException(
+              "Failed to register user",
+              statusCode = 500,
+              errorCode = "REGISTRATION_FAILED",
+              cause = err
+            )
+          )
         }
       }
   }
@@ -108,6 +126,7 @@ class AuthHandler(private val eventBus: EventBus, private val jwtService: JwtSer
             // User not found - return same error as invalid password for security
             ctx.fail(UnauthorizedException.invalidCredentials())
           }
+
           else -> {
             logger.error("Failed to login", err)
             ctx.fail(AppException("Login failed", statusCode = 500, errorCode = "LOGIN_FAILED", cause = err))

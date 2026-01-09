@@ -1,10 +1,6 @@
 package com.example.switcher.middleware
 
-import com.example.switcher.error.AppException
-import com.example.switcher.error.BadRequestException
-import com.example.switcher.error.ForbiddenException
-import com.example.switcher.error.NotFoundException
-import com.example.switcher.error.UnauthorizedException
+import com.example.switcher.error.*
 import com.example.switcher.verticle.DatabaseVerticle
 import io.vertx.core.Handler
 import io.vertx.core.eventbus.EventBus
@@ -66,9 +62,17 @@ class CheckSwitchOwnerMiddleware(
             logger.warn("Switch not found: $switchId")
             ctx.fail(NotFoundException("Switch", switchId))
           }
+
           else -> {
             logger.error("Failed to check switch ownership", err)
-            ctx.fail(AppException("Failed to verify switch ownership", statusCode = 500, errorCode = "OWNERSHIP_CHECK_FAILED", cause = err))
+            ctx.fail(
+              AppException(
+                "Failed to verify switch ownership",
+                statusCode = 500,
+                errorCode = "OWNERSHIP_CHECK_FAILED",
+                cause = err
+              )
+            )
           }
         }
       }

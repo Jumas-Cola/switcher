@@ -1,11 +1,7 @@
 package com.example.switcher
 
 import com.example.switcher.config.JwtConfig
-import com.example.switcher.handler.AuthHandler
-import com.example.switcher.handler.GlobalErrorHandler
-import com.example.switcher.handler.HealthHandler
-import com.example.switcher.handler.PublicSwitchHandler
-import com.example.switcher.handler.SwitchHandler
+import com.example.switcher.handler.*
 import com.example.switcher.middleware.CheckSwitchOwnerMiddleware
 import com.example.switcher.middleware.JwtAuthMiddleware
 import com.example.switcher.service.JwtService

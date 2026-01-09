@@ -36,9 +36,17 @@ class PublicSwitchHandler(private val eventBus: EventBus) {
           err is ReplyException && err.failureCode() == 404 -> {
             ctx.fail(NotFoundException("Switch with public code '$code' not found"))
           }
+
           else -> {
             logger.error("Failed to get switch by public code", err)
-            ctx.fail(AppException("Failed to retrieve switch", statusCode = 500, errorCode = "PUBLIC_SWITCH_RETRIEVAL_FAILED", cause = err))
+            ctx.fail(
+              AppException(
+                "Failed to retrieve switch",
+                statusCode = 500,
+                errorCode = "PUBLIC_SWITCH_RETRIEVAL_FAILED",
+                cause = err
+              )
+            )
           }
         }
       }

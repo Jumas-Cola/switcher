@@ -1,31 +1,489 @@
-= Switcher
+= SwitchAPI
+:toc:
+:toc-placement!:
 
 image:https://img.shields.io/badge/vert.x-5.0.6-purple.svg[link="https://vertx.io"]
+image:https://img.shields.io/badge/kotlin-2.1.0-blue.svg[link="https://kotlinlang.org"]
+image:https://img.shields.io/badge/jvm-21-orange.svg[link="https://adoptium.net"]
 
-This application was generated using http://start.vertx.io
+Reactive REST API для управления переключателями (switches) с публичным доступом. Построен на Vert.x 5.0.6 с использованием Kotlin, PostgreSQL и JWT аутентификации.
 
-== Building
+toc::[]
 
-To launch your tests:
-```
-./gradlew clean test
-```
+== Возможности
 
-To package your application:
-```
+* 🔐 JWT аутентификация с Argon2id хешированием паролей
+* 🔄 Управление переключателями (SWITCH/BUTTON типы)
+* 🌐 Публичный доступ к переключателям по уникальному коду
+* 📝 OpenAPI 3.1 спецификация с автоматической валидацией
+* 🎨 Swagger UI для тестирования API
+* ⚡ Реактивная архитектура на EventBus
+* 🛡️ Централизованная обработка ошибок
+* ✅ Полное покрытие тестами (34 теста)
+
+== Архитектура
+
+[source]
+----
+┌─────────────────────────────────────────────────────────────┐
+│                      MainVerticle                           │
+│              (загрузка конфига, деплой verticles)           │
+└─────────────────────────────────────────────────────────────┘
+                              │
+              ┌───────────────┴───────────────┐
+              ▼                               ▼
+┌─────────────────────────┐     ┌─────────────────────────────┐
+│      HttpVerticle       │     │     DatabaseVerticle        │
+│  (HTTP server, routing) │     │  (EventBus handlers, repos) │
+│                         │     │                             │
+│  RouterFactory          │     │  UserRepository             │
+│    ├─ HealthHandler     │     │  SwitchRepository           │
+│    ├─ AuthHandler ──────┼──EventBus──▶ handlers            │
+│    ├─ SwitchHandler ────┼──EventBus──▶ handlers            │
+│    └─ PublicSwitchHandler                                   │
+└─────────────────────────┘     └─────────────────────────────┘
+----
+
+=== Поток данных
+
+[source]
+----
+HTTP Request
+    ↓
+OpenAPI Router → Handler (protected by JWT/Owner middleware)
+    ↓
+EventBus.request(address, JsonObject)
+    ↓
+DatabaseVerticle → Repository → PostgreSQL
+    ↓
+EventBus reply (JsonObject)
+    ↓
+Handler → HTTP Response (JSON)
+----
+
+== Структура проекта
+
+[source]
+----
+src/main/kotlin/com/example/switcher/
+├── MainVerticle.kt              # Загрузка конфига, деплой verticles
+├── RouterFactory.kt             # Регистрация маршрутов, создание handlers
+├── config/
+│   └── AppConfig.kt             # Data class для типизированной конфигурации
+├── verticle/
+│   ├── HttpVerticle.kt          # HTTP сервер
+│   └── DatabaseVerticle.kt      # EventBus handlers, репозитории
+├── handler/
+│   ├── HealthHandler.kt         # GET /api/health
+│   ├── AuthHandler.kt           # POST /api/register, POST /api/login
+│   ├── SwitchHandler.kt         # CRUD switches (EventBus → DatabaseVerticle)
+│   ├── PublicSwitchHandler.kt   # GET /public/:code
+│   └── GlobalErrorHandler.kt    # Глобальный обработчик ошибок
+├── error/
+│   ├── AppException.kt          # Базовый класс исключений
+│   ├── ValidationException.kt   # Ошибки валидации (400)
+│   ├── NotFoundException.kt     # Ресурс не найден (404)
+│   ├── UnauthorizedException.kt # Требуется аутентификация (401)
+│   ├── ForbiddenException.kt    # Доступ запрещён (403)
+│   ├── BadRequestException.kt   # Некорректный запрос (400)
+│   └── response/
+│       ├── ErrorResponse.kt     # Структура JSON ответа об ошибке
+│       └── ValidationError.kt   # Ошибка валидации поля
+├── repository/
+│   ├── UserRepository.kt        # SQL запросы для users
+│   └── SwitchRepository.kt      # SQL запросы для switches
+├── model/
+│   ├── User.kt                  # data class User
+│   └── Switch.kt                # data class Switch
+├── dto/
+│   ├── request/                 # DTO для входящих запросов
+│   └── response/                # DTO для ответов
+├── middleware/
+│   ├── JwtAuthMiddleware.kt     # Проверка JWT токена
+│   └── CheckSwitchOwnerMiddleware.kt # Проверка владельца switch
+├── service/
+│   └── JwtService.kt            # Генерация и валидация JWT
+└── util/
+    └── PasswordHasher.kt        # Хеширование паролей (Argon2)
+----
+
+== Быстрый старт
+
+=== Требования
+
+* JDK 21+
+* Docker и Docker Compose (для PostgreSQL)
+* Gradle 8.5+
+
+=== Запуск
+
+1. **Запустить PostgreSQL:**
++
+[source,bash]
+----
+docker-compose up -d
+----
+
+2. **Собрать проект:**
++
+[source,bash]
+----
 ./gradlew clean assemble
-```
+----
 
-To run your application:
-```
-./gradlew clean run
-```
+3. **Запустить приложение:**
++
+[source,bash]
+----
+./gradlew run
+----
 
-== Help
+4. **Открыть Swagger UI:**
++
+http://localhost:8080/swagger-ui/index.html
+
+=== Запуск тестов
+
+[source,bash]
+----
+./gradlew cleanTest test
+----
+
+Результат: *34/34 тестов PASSED* ✅
+
+== API Endpoints
+
+=== Публичные (без аутентификации)
+
+[cols="1,3,4"]
+|===
+| Method | Endpoint | Description
+
+| GET
+| `/api/health`
+| Health check
+
+| POST
+| `/api/register`
+| Регистрация пользователя
+
+| POST
+| `/api/login`
+| Авторизация (возвращает JWT токен)
+
+| GET
+| `/api/public/{code}`
+| Получить состояние переключателя по публичному коду
+|===
+
+=== Защищённые (требуется JWT)
+
+[cols="1,3,4"]
+|===
+| Method | Endpoint | Description
+
+| GET
+| `/api/switches`
+| Список всех switches текущего пользователя
+
+| GET
+| `/api/switches/{id}`
+| Получить switch по ID
+
+| POST
+| `/api/switches`
+| Создать новый switch
+
+| PUT
+| `/api/switches/{id}/toggle`
+| Переключить состояние switch (ON/OFF)
+
+| DELETE
+| `/api/switches/{id}`
+| Удалить switch
+|===
+
+== Обработка ошибок
+
+=== Структура ответа об ошибке
+
+Все ошибки возвращаются в едином структурированном формате:
+
+[source,json]
+----
+{
+  "error": "Validation Error",
+  "message": "Invalid input data",
+  "errorCode": "VALIDATION_ERROR",
+  "statusCode": 400,
+  "validationErrors": [
+    {
+      "field": "email",
+      "message": "Email already exists",
+      "code": "EMAIL_EXISTS"
+    }
+  ],
+  "timestamp": "2026-01-09T12:34:56Z",
+  "path": "/api/register"
+}
+----
+
+=== HTTP статус коды
+
+[cols="1,3,4"]
+|===
+| Код | Описание | Пример
+
+| 200
+| OK
+| Успешный запрос
+
+| 201
+| Created
+| Ресурс создан
+
+| 204
+| No Content
+| Ресурс удалён
+
+| 400
+| Bad Request
+| Невалидные данные, неверный UUID
+
+| 401
+| Unauthorized
+| Отсутствует/невалидный токен
+
+| 403
+| Forbidden
+| Доступ запрещён (не владелец)
+
+| 404
+| Not Found
+| Ресурс не найден
+
+| 500
+| Internal Server Error
+| Внутренняя ошибка сервера
+|===
+
+=== Коды ошибок приложения
+
+[cols="2,4,1"]
+|===
+| errorCode | Описание | HTTP
+
+| `VALIDATION_ERROR`
+| Ошибка валидации входных данных
+| 400
+
+| `EMAIL_EXISTS`
+| Email уже зарегистрирован
+| 400
+
+| `BAD_REQUEST`
+| Некорректный запрос
+| 400
+
+| `UNAUTHORIZED`
+| Требуется аутентификация
+| 401
+
+| `FORBIDDEN`
+| Доступ запрещён
+| 403
+
+| `NOT_FOUND`
+| Ресурс не найден
+| 404
+
+| `REGISTRATION_FAILED`
+| Ошибка регистрации
+| 500
+
+| `LOGIN_FAILED`
+| Ошибка входа
+| 500
+
+| `SWITCH_CREATION_FAILED`
+| Ошибка создания переключателя
+| 500
+
+| `SWITCH_TOGGLE_FAILED`
+| Ошибка переключения состояния
+| 500
+
+| `SWITCH_DELETION_FAILED`
+| Ошибка удаления переключателя
+| 500
+|===
+
+=== Использование в коде
+
+[source,kotlin]
+----
+// Раньше
+if (switchNotFound) {
+  ctx.response().setStatusCode(404).end()
+}
+
+// Теперь
+throw NotFoundException("Switch", id)
+// или
+ctx.fail(NotFoundException("Switch", id))
+----
+
+`GlobalErrorHandler` автоматически преобразует исключение в структурированный JSON ответ.
+
+==== Примеры
+
+[source,kotlin]
+----
+// Валидация с несколькими ошибками полей
+throw ValidationException(listOf(
+  ValidationError("email", "Invalid format", "INVALID_EMAIL"),
+  ValidationError("password", "Too short", "PASSWORD_TOO_SHORT")
+))
+
+// Ресурс не найден
+throw NotFoundException("Switch", switchId)
+
+// Доступ запрещён
+throw ForbiddenException.resourceOwnershipRequired()
+
+// Неавторизован
+throw UnauthorizedException.invalidCredentials()
+
+// Неверный запрос
+throw BadRequestException.invalidUuid("id")
+----
+
+== Конфигурация
+
+Настройки задаются через переменные окружения (файл `.env`):
+
+[source,properties]
+----
+# HTTP Server
+HTTP_HOST=0.0.0.0
+HTTP_PORT=8080
+
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_DATABASE=switchapi
+DB_USER=switchapi
+DB_PASSWORD=switchapi
+
+# JWT
+JWT_SECRET=your-secret-key-here
+JWT_EXPIRATION_TIME=604800000  # 7 дней в миллисекундах
+
+# Logging
+LOG_LEVEL=INFO
+----
+
+== EventBus Addresses
+
+[cols="2,3"]
+|===
+| Address | Description
+
+| `db.user.create`
+| Создать пользователя
+
+| `db.user.getById`
+| Получить пользователя по ID
+
+| `db.user.getByEmail`
+| Найти пользователя по email
+
+| `db.switch.create`
+| Создать switch
+
+| `db.switch.getById`
+| Получить switch по ID
+
+| `db.switch.getByUser`
+| Получить все switches пользователя
+
+| `db.switch.getByPublicCode`
+| Получить switch по публичному коду
+
+| `db.switch.update`
+| Обновить состояние switch
+
+| `db.switch.delete`
+| Удалить switch
+|===
+
+== Тестирование
+
+Проект имеет полное покрытие тестами (34 теста):
+
+[cols="2,1"]
+|===
+| Тестовый класс | Тесты
+
+| `ConfigLoaderTest`
+| 2
+
+| `TestMainVerticle`
+| 1
+
+| `AuthHandlerTest`
+| 4
+
+| `HealthHandlerTest`
+| 1
+
+| `SwitchHandlerTest`
+| 16
+
+| `PublicSwitchHandlerTest`
+| 5
+
+| `JwtAuthMiddlewareTest`
+| 5
+
+| *Итого*
+| *34 ✅*
+|===
+
+=== Запуск тестов
+
+[source,bash]
+----
+# Все тесты
+./gradlew cleanTest test
+
+# Конкретный тест
+./gradlew test --tests "SwitchHandlerTest"
+
+# С детальным выводом
+./gradlew test --info
+----
+
+== Технологический стек
+
+* *Язык:* Kotlin 2.1.0
+* *JVM:* OpenJDK 21
+* *Фреймворк:* Vert.x 5.0.6
+* *База данных:* PostgreSQL 16
+* *Аутентификация:* JWT (vert.x-auth-jwt)
+* *Хеширование паролей:* Argon2id
+* *Валидация:* OpenAPI 3.1 (vert.x-web-openapi-router)
+* *Тестирование:* JUnit 5, Vert.x JUnit5
+* *Сборка:* Gradle 8.5
+
+== Полезные ссылки
 
 * https://vertx.io/docs/[Vert.x Documentation]
-* https://stackoverflow.com/questions/tagged/vert.x?sort=newest&pageSize=15[Vert.x Stack Overflow]
-* https://groups.google.com/forum/?fromgroups#!forum/vertx[Vert.x User Group]
+* https://kotlin.github.io/kotlinx.coroutines/[Kotlin Coroutines]
+* https://swagger.io/specification/[OpenAPI Specification]
+* https://stackoverflow.com/questions/tagged/vert.x[Vert.x on Stack Overflow]
 * https://discord.gg/6ry7aqPWXy[Vert.x Discord]
 
+== Лицензия
 
+MIT

@@ -59,7 +59,14 @@ class JwtAuthMiddleware(
           ctx.next()
         } catch (e: Exception) {
           logger.error("Failed to process user data", e)
-          ctx.fail(AppException("Failed to authenticate user", statusCode = 500, errorCode = "AUTH_PROCESSING_FAILED", cause = e))
+          ctx.fail(
+            AppException(
+              "Failed to authenticate user",
+              statusCode = 500,
+              errorCode = "AUTH_PROCESSING_FAILED",
+              cause = e
+            )
+          )
         }
       }
       .onFailure { err ->

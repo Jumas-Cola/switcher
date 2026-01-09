@@ -46,9 +46,17 @@ class SwitchHandler(private val eventBus: EventBus) {
           err is ReplyException && err.failureCode() == 404 -> {
             ctx.fail(NotFoundException("Switch", id))
           }
+
           else -> {
             logger.error("Failed to get switch", err)
-            ctx.fail(AppException("Failed to retrieve switch", statusCode = 500, errorCode = "SWITCH_RETRIEVAL_FAILED", cause = err))
+            ctx.fail(
+              AppException(
+                "Failed to retrieve switch",
+                statusCode = 500,
+                errorCode = "SWITCH_RETRIEVAL_FAILED",
+                cause = err
+              )
+            )
           }
         }
       }
@@ -80,7 +88,14 @@ class SwitchHandler(private val eventBus: EventBus) {
       }
       .onFailure { err ->
         logger.error("Failed to get switches for user", err)
-        ctx.fail(AppException("Failed to retrieve user switches", statusCode = 500, errorCode = "USER_SWITCHES_RETRIEVAL_FAILED", cause = err))
+        ctx.fail(
+          AppException(
+            "Failed to retrieve user switches",
+            statusCode = 500,
+            errorCode = "USER_SWITCHES_RETRIEVAL_FAILED",
+            cause = err
+          )
+        )
       }
   }
 
@@ -117,7 +132,14 @@ class SwitchHandler(private val eventBus: EventBus) {
       }
       .onFailure { err ->
         logger.error("Failed to create switch", err)
-        ctx.fail(AppException("Failed to create switch", statusCode = 500, errorCode = "SWITCH_CREATION_FAILED", cause = err))
+        ctx.fail(
+          AppException(
+            "Failed to create switch",
+            statusCode = 500,
+            errorCode = "SWITCH_CREATION_FAILED",
+            cause = err
+          )
+        )
       }
   }
 
@@ -158,9 +180,17 @@ class SwitchHandler(private val eventBus: EventBus) {
                 err is ReplyException && err.failureCode() == 404 -> {
                   ctx.fail(NotFoundException("Switch", id))
                 }
+
                 else -> {
                   logger.error("Failed to toggle switch state", err)
-                  ctx.fail(AppException("Failed to toggle switch", statusCode = 500, errorCode = "SWITCH_TOGGLE_FAILED", cause = err))
+                  ctx.fail(
+                    AppException(
+                      "Failed to toggle switch",
+                      statusCode = 500,
+                      errorCode = "SWITCH_TOGGLE_FAILED",
+                      cause = err
+                    )
+                  )
                 }
               }
             }
@@ -171,9 +201,17 @@ class SwitchHandler(private val eventBus: EventBus) {
           err is ReplyException && err.failureCode() == 404 -> {
             ctx.fail(NotFoundException("Switch", id))
           }
+
           else -> {
             logger.error("Failed to get switch", err)
-            ctx.fail(AppException("Failed to retrieve switch for toggle", statusCode = 500, errorCode = "SWITCH_RETRIEVAL_FAILED", cause = err))
+            ctx.fail(
+              AppException(
+                "Failed to retrieve switch for toggle",
+                statusCode = 500,
+                errorCode = "SWITCH_RETRIEVAL_FAILED",
+                cause = err
+              )
+            )
           }
         }
       }
@@ -194,9 +232,17 @@ class SwitchHandler(private val eventBus: EventBus) {
           err is ReplyException && err.failureCode() == 404 -> {
             ctx.fail(NotFoundException("Switch", id))
           }
+
           else -> {
             logger.error("Failed to delete switch", err)
-            ctx.fail(AppException("Failed to delete switch", statusCode = 500, errorCode = "SWITCH_DELETION_FAILED", cause = err))
+            ctx.fail(
+              AppException(
+                "Failed to delete switch",
+                statusCode = 500,
+                errorCode = "SWITCH_DELETION_FAILED",
+                cause = err
+              )
+            )
           }
         }
       }
